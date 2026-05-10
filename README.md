@@ -69,11 +69,17 @@ This implementation turns that idea into code:
   module probing.
 - `ArchitectureMeta.instrument_candidate()` injects under-tested generated
   modules into real candidate genomes so they receive actual SGD evaluation.
+- First evaluations use a clean generated-module probe scaffold, so the system
+  changes the experiment unit instead of only inserting modules into noisy random
+  genomes.
+- `ArchitectureMeta.refresh_meta_operator_policy()` updates the meta-layer's own
+  `library`, `compose`, and `specialize` operator weights from generated-module
+  evaluation and archive evidence.
 
 This creates a closed loop:
 
-`failure residue -> instrument mutation -> changed candidate generation ->
-real evaluation evidence -> archive or prune decision`.
+`failure residue -> instrument mutation -> changed experiment unit -> real
+evaluation evidence -> meta-operator policy update -> archive or prune decision`.
 
 ## Usage
 
@@ -93,6 +99,16 @@ The ablation now compares:
 - `SELF-MODIFY`: baseline meta-grammar expansion without EIE
 - `AFIRSI-EIE`: meta-grammar expansion plus epistemic instrument evolution
 
+Run the focused EIE mechanism validation:
+
+```bash
+python validate_eie.py
+```
+
+This checks a bounded claim only: generated modules that baseline
+self-modification prunes immediately are protected, probed, and evaluated under
+AFIRSI-EIE. It is not a proof of open-ended RSI or consistent BPC improvement.
+
 ## Validation
 
 Run the test suite:
@@ -108,7 +124,21 @@ expansion, MAP-Elites insertion, loop integration, and EIE/AFIRSI behavior.
 Current local validation:
 
 ```text
-46 passed
+50 passed
+```
+
+Focused EIE validation on five CPU seeds:
+
+```text
+SELF-MODIFY generated evaluations: 0
+AFIRSI-EIE generated evaluations: 45
+AFIRSI-EIE generated archive insertions: 21
+AFIRSI-EIE meta-operator policy updates: 25
+SELF-MODIFY mean best BPC: 7.6982
+AFIRSI-EIE mean best BPC: 7.6757
+Mean BPC delta (SELF-MODIFY - AFIRSI-EIE): +0.0225
+AFIRSI-EIE seed wins: 3 / 5
+Mechanism valid: true
 ```
 
 ## Source Lineage

@@ -81,8 +81,14 @@ class PerceptionFilter(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         h = x.transpose(1, 2)
+        sensed = []
+        for conv in self.convs:
+            y = conv(h)
+            if y.size(-1) < h.size(-1):
+                y = F.pad(y, (0, h.size(-1) - y.size(-1)))
+            sensed.append(y[..., :h.size(-1)])
         return self.norm(
-            self.pw(torch.cat([c(h) for c in self.convs], 1)).transpose(1, 2)
+            self.pw(torch.cat(sensed, 1)).transpose(1, 2)
         )
 
 
@@ -206,7 +212,10 @@ class CoarseNCA(nn.Module):
         h = self.dn(self.dp(self.down(x.transpose(1, 2))).transpose(1, 2))
         for _ in range(self.n_steps):
             h = self.step(h)
-        hu = self.up_proj(self.up(h.transpose(1, 2))).transpose(1, 2)[:, :L]
+        hu = self.up_proj(self.up(h.transpose(1, 2))).transpose(1, 2)
+        if hu.size(1) < L:
+            hu = F.pad(hu, (0, 0, 0, L - hu.size(1)))
+        hu = hu[:, :L]
         return torch.sigmoid(self.gate(torch.cat([x, hu], -1))) * hu
 
 
@@ -334,6 +343,9 @@ class GeneratedModuleRecord:
     prune_attempts: int = 0
     protected_from_prune: int = 0
 
+    def source_kind(self) -> str:
+        return self.source_action.split(":", 1)[0]
+
 
 class ModuleRegistry:
     """Layer 1: Manages available neural module primitives.
@@ -344,6 +356,7 @@ class ModuleRegistry:
         self._modules: Dict[str, ModuleSpec] = {}
         self._default_names: set = set()
         self._generated_records: Dict[str, GeneratedModuleRecord] = {}
+        self._retired_generated_records: List[GeneratedModuleRecord] = []
         self._register_defaults()
 
     def _register_defaults(self):
@@ -422,7 +435,9 @@ class ModuleRegistry:
         if name not in self._modules:
             return False
         del self._modules[name]
-        self._generated_records.pop(name, None)
+        record = self._generated_records.pop(name, None)
+        if record is not None:
+            self._retired_generated_records.append(copy.deepcopy(record))
         logger.info(f"ModuleRegistry: -{name}")
         return True
 
@@ -443,6 +458,9 @@ class ModuleRegistry:
 
     def generated_records(self) -> List[GeneratedModuleRecord]:
         return list(self._generated_records.values())
+
+    def all_generated_records(self) -> List[GeneratedModuleRecord]:
+        return self._retired_generated_records + self.generated_records()
 
     def record_genome_evaluation(
         self,
@@ -945,6 +963,18 @@ class FailureResidue:
     policy_after: Dict[str, float]
 
 
+@dataclass
+class MetaOperatorStats:
+    """Evidence used to evolve the meta-layer's own generation operators."""
+    attempts: int = 0
+    successes: int = 0
+    generated_modules: int = 0
+    evaluations: int = 0
+    archive_insertions: int = 0
+    best_fitness: float = 0.0
+    weight: float = 1.0
+
+
 class EpistemicInstrumentEvolver:
     """Mutates the search instruments when their failure mode becomes visible.
 
@@ -1039,6 +1069,7 @@ class ArchitectureMeta:
         registry: ModuleRegistry,
         grammar: ArchitectureGrammar,
         enable_eie: bool = False,
+        enable_meta_operator_evolution: Optional[bool] = None,
         expansion_interval: int = 5,
         generated_min_evaluations: int = 2,
     ):
@@ -1058,6 +1089,17 @@ class ArchitectureMeta:
         self.pruning_residues: List[FailureResidue] = []
         self.protected_pruning_attempts = 0
         self.instrumented_candidates = 0
+        self.enable_meta_operator_evolution = (
+            enable_eie
+            if enable_meta_operator_evolution is None
+            else enable_meta_operator_evolution
+        )
+        self.meta_operator_stats: Dict[str, MetaOperatorStats] = {
+            "library": MetaOperatorStats(),
+            "compose": MetaOperatorStats(),
+            "specialize": MetaOperatorStats(),
+        }
+        self.meta_operator_policy_updates = 0
 
     def set_generation(self, generation: int) -> None:
         self.current_generation = generation
@@ -1088,13 +1130,24 @@ class ArchitectureMeta:
             if self.registry.get(record.name) is None:
                 continue
             if record.evaluations < policy.generated_min_evaluations:
-                candidates.append(record.name)
+                candidates.append(record)
 
         if not candidates:
             return genome
 
+        candidates.sort(key=lambda r: (r.evaluations, r.birth_generation))
+        selected = candidates[0]
+        probe = LayerGene(module_name=selected.name, repeat=1)
+        if selected.evaluations == 0:
+            self.instrumented_candidates += 1
+            return ArchitectureGenome(
+                layers=[probe],
+                d_model=genome.d_model,
+                vocab_size=genome.vocab_size,
+                max_len=genome.max_len,
+            )
+
         g = genome.clone()
-        probe = LayerGene(module_name=random.choice(candidates), repeat=1)
         if len(g.layers) < self.grammar.max_layers:
             g.layers.insert(random.randint(0, len(g.layers)), probe)
         elif g.layers:
@@ -1103,6 +1156,66 @@ class ArchitectureMeta:
             g.layers.append(probe)
         self.instrumented_candidates += 1
         return g
+
+    def refresh_meta_operator_policy(self) -> Dict[str, float]:
+        """Update meta-operator weights from generated-module archive evidence."""
+        for stats in self.meta_operator_stats.values():
+            stats.generated_modules = 0
+            stats.evaluations = 0
+            stats.archive_insertions = 0
+            stats.best_fitness = 0.0
+
+        for record in self.registry.all_generated_records():
+            stats = self.meta_operator_stats.get(record.source_kind())
+            if stats is None:
+                continue
+            stats.generated_modules += 1
+            stats.evaluations += record.evaluations
+            stats.archive_insertions += record.archive_insertions
+            stats.best_fitness = max(stats.best_fitness, record.best_fitness)
+
+        changed = False
+        for stats in self.meta_operator_stats.values():
+            old_weight = stats.weight
+            evidence_score = (
+                1.0
+                + 0.25 * stats.evaluations
+                + 2.0 * stats.archive_insertions
+                + 4.0 * stats.best_fitness
+            )
+            exploration_floor = 0.25
+            stats.weight = max(exploration_floor, round(evidence_score, 4))
+            if abs(stats.weight - old_weight) > 1e-9:
+                changed = True
+
+        if changed:
+            self.meta_operator_policy_updates += 1
+
+        return {
+            name: stats.weight
+            for name, stats in self.meta_operator_stats.items()
+        }
+
+    def _meta_operator_order(self) -> List[str]:
+        operators = ["library", "compose", "specialize"]
+        if not self.enable_meta_operator_evolution:
+            return operators
+
+        self.refresh_meta_operator_policy()
+        remaining = operators[:]
+        ordered = []
+        while remaining:
+            weights = [self.meta_operator_stats[name].weight for name in remaining]
+            choice = random.choices(remaining, weights=weights, k=1)[0]
+            ordered.append(choice)
+            remaining.remove(choice)
+        return ordered
+
+    def meta_operator_weights(self) -> Dict[str, float]:
+        return {
+            name: stats.weight
+            for name, stats in self.meta_operator_stats.items()
+        }
 
     def expand_design_space(
         self, elite_genomes: List[ArchitectureGenome],
@@ -1117,18 +1230,20 @@ class ArchitectureMeta:
         """
         self.expansion_count += 1
         action = None
-
-        # Mechanism 1: Library extraction (highest priority)
-        if len(elite_genomes) >= 3:
-            action = self._extract_library(elite_genomes, elite_fitnesses)
-
-        # Mechanism 2: Sequential composition
-        if action is None and self.registry.size >= 3:
-            action = self._compose_sequential()
-
-        # Mechanism 3: Hyperparameter specialization
-        if action is None and elite_genomes:
-            action = self._specialize_hyperparams(elite_genomes, elite_fitnesses)
+        for operator in self._meta_operator_order():
+            self.meta_operator_stats[operator].attempts += 1
+            if operator == "library" and len(elite_genomes) >= 3:
+                action = self._extract_library(elite_genomes, elite_fitnesses)
+            elif operator == "compose" and self.registry.size >= 3:
+                action = self._compose_sequential()
+            elif operator == "specialize" and elite_genomes:
+                action = self._specialize_hyperparams(
+                    elite_genomes,
+                    elite_fitnesses,
+                )
+            if action is not None:
+                self.meta_operator_stats[action.split(":", 1)[0]].successes += 1
+                break
 
         if action:
             self._expansion_history.append(action)
@@ -1604,6 +1719,8 @@ class RSINASEngine:
             "generated_probe_rate": round(
                 self.meta.pruning_policy.generated_probe_rate, 4
             ),
+            "meta_operator_policy_updates": self.meta.meta_operator_policy_updates,
+            "meta_operator_weights": self.meta.meta_operator_weights(),
         }
         self.history.append(record)
         return record
@@ -1639,6 +1756,7 @@ def build_rsi_nas(
     expansion_interval: int = 5,
     pruning_interval: int = 10,
     enable_eie: bool = True,
+    enable_meta_operator_evolution: Optional[bool] = None,
     generated_min_evaluations: int = 2,
     corpus: str = None,
     device: torch.device = None,
@@ -1650,6 +1768,7 @@ def build_rsi_nas(
         registry,
         grammar,
         enable_eie=enable_eie,
+        enable_meta_operator_evolution=enable_meta_operator_evolution,
         expansion_interval=expansion_interval,
         generated_min_evaluations=generated_min_evaluations,
     )
