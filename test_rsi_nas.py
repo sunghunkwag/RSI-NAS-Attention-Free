@@ -32,7 +32,7 @@ from rsi_nas import (
     LayerGene, ArchitectureGenome,
     BuiltNetwork, build_network, evaluate_architecture,
     ArchitectureGrammar, ArchitectureMeta, ArchitectureArchive,
-    ArchiveEntry, FitnessResult,
+    ArchiveEntry, FitnessResult, EIEConfig,
     RSINASEngine, build_rsi_nas,
 )
 
@@ -424,6 +424,40 @@ class TestEpistemicInstrumentEvolution:
 
         assert weights["compose"] > weights["library"]
         assert meta.meta_operator_policy_updates == 1
+
+    def test_eie_config_controls_probe_scaffold_and_operator_weights(self):
+        reg = ModuleRegistry()
+        grammar = ArchitectureGrammar(reg)
+        config = EIEConfig(
+            clean_probe_first_eval=False,
+            meta_eval_gain=0.0,
+            meta_archive_gain=5.0,
+            meta_fitness_gain=0.0,
+        )
+        meta = ArchitectureMeta(
+            reg,
+            grammar,
+            enable_eie=True,
+            enable_meta_operator_evolution=True,
+            eie_config=config,
+        )
+        spec = ModuleSpec(name="probe_gen", builder=lambda d, **kw: GatedFFN(d),
+                          default_kwargs={}, param_cost=1.0, is_generated=True)
+        reg.register(spec, birth_generation=0, source_action="compose:probe_gen")
+        reg.generated_record("probe_gen").archive_insertions = 2
+        meta.pruning_policy.generated_probe_rate = 1.0
+        meta.pruning_policy.generated_min_evaluations = 1
+
+        genome = ArchitectureGenome(
+            layers=[LayerGene("nca_step"), LayerGene("gated_ffn")],
+            d_model=D,
+        )
+        instrumented = meta.instrument_candidate(genome)
+        weights = meta.refresh_meta_operator_policy()
+
+        assert instrumented.size() >= 2
+        assert any(layer.module_name == "probe_gen" for layer in instrumented.layers)
+        assert weights["compose"] == 11.0
 
 
 # ── 9. ArchitectureArchive ──────────────────────────────────────────────────

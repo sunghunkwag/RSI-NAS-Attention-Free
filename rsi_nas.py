@@ -951,6 +951,18 @@ class PruningPolicy:
 
 
 @dataclass
+class EIEConfig:
+    """Mutable RSI instrument configuration used by the outer loop."""
+    grace_multiplier: float = 3.0
+    probe_rate: float = 1.0
+    clean_probe_first_eval: bool = True
+    meta_eval_gain: float = 0.25
+    meta_archive_gain: float = 2.0
+    meta_fitness_gain: float = 4.0
+    meta_exploration_floor: float = 0.25
+
+
+@dataclass
 class FailureResidue:
     """A durable signal that the current RSI instrument is mismeasuring progress."""
     generation: int
@@ -989,11 +1001,11 @@ class EpistemicInstrumentEvolver:
         self,
         expansion_interval: int,
         min_evaluations: int = 2,
-        probe_rate: float = 1.0,
+        config: Optional[EIEConfig] = None,
     ):
+        self.config = config or EIEConfig()
         self.expansion_interval = max(1, expansion_interval)
         self.min_evaluations = max(0, min_evaluations)
-        self.probe_rate = max(0.0, min(1.0, probe_rate))
         self.residues: List[FailureResidue] = []
 
     def evaluate_pruning_attempt(
@@ -1002,8 +1014,10 @@ class EpistemicInstrumentEvolver:
         generation: int,
         policy: PruningPolicy,
     ) -> Optional[FailureResidue]:
-        target_grace = max(policy.generated_grace_generations,
-                           3 * self.expansion_interval)
+        target_grace = max(
+            policy.generated_grace_generations,
+            int(math.ceil(self.config.grace_multiplier * self.expansion_interval)),
+        )
         target_evals = max(policy.generated_min_evaluations,
                            self.min_evaluations)
         age = max(0, generation - record.birth_generation)
@@ -1021,13 +1035,13 @@ class EpistemicInstrumentEvolver:
         changed = (
             policy.generated_grace_generations < target_grace or
             policy.generated_min_evaluations < target_evals or
-            policy.generated_probe_rate < self.probe_rate
+            policy.generated_probe_rate < self.config.probe_rate
         )
         if changed:
             policy.generated_grace_generations = target_grace
             policy.generated_min_evaluations = target_evals
             policy.generated_probe_rate = max(policy.generated_probe_rate,
-                                              self.probe_rate)
+                                              self.config.probe_rate)
             policy.mutation_count += 1
             policy.last_mutation_generation = generation
 
@@ -1070,6 +1084,7 @@ class ArchitectureMeta:
         grammar: ArchitectureGrammar,
         enable_eie: bool = False,
         enable_meta_operator_evolution: Optional[bool] = None,
+        eie_config: Optional[EIEConfig] = None,
         expansion_interval: int = 5,
         generated_min_evaluations: int = 2,
     ):
@@ -1079,10 +1094,12 @@ class ArchitectureMeta:
         self._expansion_history: List[str] = []
         self.current_generation = 0
         self.pruning_policy = PruningPolicy()
+        self.eie_config = eie_config or EIEConfig()
         self.instrument_evolver = (
             EpistemicInstrumentEvolver(
                 expansion_interval=expansion_interval,
                 min_evaluations=generated_min_evaluations,
+                config=self.eie_config,
             )
             if enable_eie else None
         )
@@ -1138,7 +1155,7 @@ class ArchitectureMeta:
         candidates.sort(key=lambda r: (r.evaluations, r.birth_generation))
         selected = candidates[0]
         probe = LayerGene(module_name=selected.name, repeat=1)
-        if selected.evaluations == 0:
+        if selected.evaluations == 0 and self.eie_config.clean_probe_first_eval:
             self.instrumented_candidates += 1
             return ArchitectureGenome(
                 layers=[probe],
@@ -1179,11 +1196,11 @@ class ArchitectureMeta:
             old_weight = stats.weight
             evidence_score = (
                 1.0
-                + 0.25 * stats.evaluations
-                + 2.0 * stats.archive_insertions
-                + 4.0 * stats.best_fitness
+                + self.eie_config.meta_eval_gain * stats.evaluations
+                + self.eie_config.meta_archive_gain * stats.archive_insertions
+                + self.eie_config.meta_fitness_gain * stats.best_fitness
             )
-            exploration_floor = 0.25
+            exploration_floor = self.eie_config.meta_exploration_floor
             stats.weight = max(exploration_floor, round(evidence_score, 4))
             if abs(stats.weight - old_weight) > 1e-9:
                 changed = True
@@ -1757,6 +1774,7 @@ def build_rsi_nas(
     pruning_interval: int = 10,
     enable_eie: bool = True,
     enable_meta_operator_evolution: Optional[bool] = None,
+    eie_config: Optional[EIEConfig] = None,
     generated_min_evaluations: int = 2,
     corpus: str = None,
     device: torch.device = None,
@@ -1769,6 +1787,7 @@ def build_rsi_nas(
         grammar,
         enable_eie=enable_eie,
         enable_meta_operator_evolution=enable_meta_operator_evolution,
+        eie_config=eie_config,
         expansion_interval=expansion_interval,
         generated_min_evaluations=generated_min_evaluations,
     )
