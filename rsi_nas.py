@@ -17,6 +17,8 @@ The Integration:
   Vocabulary = primitive neural modules with typed I/O signatures
   Grammar = rules for composing modules into full networks
   Meta-Grammar = rules for creating new modules from recurring patterns
+  EIE/AFIRSI = rules for evolving the pruning/probing instruments when
+    generated-module evidence is being destroyed too early
   Fitness = actual SGD training on character-level language modeling
   Archive = MAP-Elites over (param_count, layer_count) behavior space
 
@@ -317,6 +319,22 @@ class ModuleSpec:
         return hashlib.md5(data.encode()).hexdigest()[:10]
 
 
+@dataclass
+class GeneratedModuleRecord:
+    """Lifecycle evidence for a module created by the meta layer."""
+    name: str
+    birth_generation: int
+    source_action: str
+    parent_modules: Tuple[str, ...] = field(default_factory=tuple)
+    evaluations: int = 0
+    archive_insertions: int = 0
+    elite_uses: int = 0
+    best_fitness: float = 0.0
+    last_evaluated_generation: int = -1
+    prune_attempts: int = 0
+    protected_from_prune: int = 0
+
+
 class ModuleRegistry:
     """Layer 1: Manages available neural module primitives.
 
@@ -325,6 +343,7 @@ class ModuleRegistry:
     def __init__(self):
         self._modules: Dict[str, ModuleSpec] = {}
         self._default_names: set = set()
+        self._generated_records: Dict[str, GeneratedModuleRecord] = {}
         self._register_defaults()
 
     def _register_defaults(self):
@@ -377,8 +396,21 @@ class ModuleRegistry:
             self._modules[spec.name] = spec
             self._default_names.add(spec.name)
 
-    def register(self, spec: ModuleSpec):
+    def register(
+        self,
+        spec: ModuleSpec,
+        birth_generation: int = 0,
+        source_action: str = "external",
+        parent_modules: Sequence[str] = (),
+    ):
         self._modules[spec.name] = spec
+        if spec.is_generated and spec.name not in self._generated_records:
+            self._generated_records[spec.name] = GeneratedModuleRecord(
+                name=spec.name,
+                birth_generation=birth_generation,
+                source_action=source_action,
+                parent_modules=tuple(parent_modules),
+            )
         logger.info(f"ModuleRegistry: +{spec.name} (cost={spec.param_cost:.1f})")
 
     def get(self, name: str) -> Optional[ModuleSpec]:
@@ -390,6 +422,7 @@ class ModuleRegistry:
         if name not in self._modules:
             return False
         del self._modules[name]
+        self._generated_records.pop(name, None)
         logger.info(f"ModuleRegistry: -{name}")
         return True
 
@@ -400,7 +433,52 @@ class ModuleRegistry:
         return random.choice(self.all_specs())
 
     def generated_names(self) -> List[str]:
-        return [n for n in self._modules if n not in self._default_names]
+        return [
+            n for n, spec in self._modules.items()
+            if n not in self._default_names and spec.is_generated
+        ]
+
+    def generated_record(self, name: str) -> Optional[GeneratedModuleRecord]:
+        return self._generated_records.get(name)
+
+    def generated_records(self) -> List[GeneratedModuleRecord]:
+        return list(self._generated_records.values())
+
+    def record_genome_evaluation(
+        self,
+        genome: "ArchitectureGenome",
+        generation: int,
+        fitness: float,
+        inserted: bool,
+    ) -> None:
+        """Attach real evaluation evidence to generated modules used by a genome."""
+        seen = set()
+        for layer in genome.layers:
+            name = layer.module_name
+            if name in seen:
+                continue
+            seen.add(name)
+            record = self._generated_records.get(name)
+            if record is None:
+                continue
+            record.evaluations += 1
+            record.best_fitness = max(record.best_fitness, fitness)
+            record.last_evaluated_generation = generation
+            if inserted:
+                record.archive_insertions += 1
+
+    def record_elite_usage(
+        self,
+        elite_genomes: List["ArchitectureGenome"],
+        generation: int,
+    ) -> None:
+        """Refresh archive evidence for generated modules."""
+        counts = Counter()
+        for genome in elite_genomes:
+            for layer in genome.layers:
+                counts[layer.module_name] += 1
+        for name, record in self._generated_records.items():
+            record.elite_uses = counts.get(name, 0)
 
     @property
     def size(self) -> int:
@@ -844,6 +922,106 @@ class ArchitectureGrammar:
 #    This is where library learning happens.
 # ===========================================================================
 
+@dataclass
+class PruningPolicy:
+    """EIE-controlled pruning instrument for generated modules."""
+    generated_grace_generations: int = 0
+    generated_min_evaluations: int = 0
+    generated_probe_rate: float = 0.0
+    mutation_count: int = 0
+    last_mutation_generation: int = -1
+
+
+@dataclass
+class FailureResidue:
+    """A durable signal that the current RSI instrument is mismeasuring progress."""
+    generation: int
+    module_name: str
+    residue_type: str
+    age: int
+    evaluations: int
+    source_action: str
+    policy_before: Dict[str, float]
+    policy_after: Dict[str, float]
+
+
+class EpistemicInstrumentEvolver:
+    """Mutates the search instruments when their failure mode becomes visible.
+
+    The ChatGPT brainstorming thread framed RSI as Epistemic Instrument
+    Evolution: not merely creating candidate modules, but rewriting the
+    instruments that observe, judge, and preserve evidence. In this repo the
+    concrete failure residue is the pruning-propagation race: generated modules
+    can be removed before mutation and archive insertion have a realistic
+    chance to test them.
+    """
+    def __init__(
+        self,
+        expansion_interval: int,
+        min_evaluations: int = 2,
+        probe_rate: float = 1.0,
+    ):
+        self.expansion_interval = max(1, expansion_interval)
+        self.min_evaluations = max(0, min_evaluations)
+        self.probe_rate = max(0.0, min(1.0, probe_rate))
+        self.residues: List[FailureResidue] = []
+
+    def evaluate_pruning_attempt(
+        self,
+        record: GeneratedModuleRecord,
+        generation: int,
+        policy: PruningPolicy,
+    ) -> Optional[FailureResidue]:
+        target_grace = max(policy.generated_grace_generations,
+                           3 * self.expansion_interval)
+        target_evals = max(policy.generated_min_evaluations,
+                           self.min_evaluations)
+        age = max(0, generation - record.birth_generation)
+        under_observed = age < target_grace or record.evaluations < target_evals
+        if not under_observed:
+            return None
+
+        before = {
+            "generated_grace_generations": policy.generated_grace_generations,
+            "generated_min_evaluations": policy.generated_min_evaluations,
+            "generated_probe_rate": policy.generated_probe_rate,
+            "mutation_count": policy.mutation_count,
+        }
+
+        changed = (
+            policy.generated_grace_generations < target_grace or
+            policy.generated_min_evaluations < target_evals or
+            policy.generated_probe_rate < self.probe_rate
+        )
+        if changed:
+            policy.generated_grace_generations = target_grace
+            policy.generated_min_evaluations = target_evals
+            policy.generated_probe_rate = max(policy.generated_probe_rate,
+                                              self.probe_rate)
+            policy.mutation_count += 1
+            policy.last_mutation_generation = generation
+
+        after = {
+            "generated_grace_generations": policy.generated_grace_generations,
+            "generated_min_evaluations": policy.generated_min_evaluations,
+            "generated_probe_rate": policy.generated_probe_rate,
+            "mutation_count": policy.mutation_count,
+        }
+
+        residue = FailureResidue(
+            generation=generation,
+            module_name=record.name,
+            residue_type="PRUNING_PROPAGATION_RACE",
+            age=age,
+            evaluations=record.evaluations,
+            source_action=record.source_action,
+            policy_before=before,
+            policy_after=after,
+        )
+        self.residues.append(residue)
+        return residue
+
+
 class ArchitectureMeta:
     """Layer 3: Rules for generating new modules and grammar rules.
 
@@ -856,11 +1034,75 @@ class ArchitectureMeta:
     3. Hyperparameter specialization: create variants of existing modules
        with proven-good hyperparameter settings from elites
     """
-    def __init__(self, registry: ModuleRegistry, grammar: ArchitectureGrammar):
+    def __init__(
+        self,
+        registry: ModuleRegistry,
+        grammar: ArchitectureGrammar,
+        enable_eie: bool = False,
+        expansion_interval: int = 5,
+        generated_min_evaluations: int = 2,
+    ):
         self.registry = registry
         self.grammar = grammar
         self.expansion_count = 0
         self._expansion_history: List[str] = []
+        self.current_generation = 0
+        self.pruning_policy = PruningPolicy()
+        self.instrument_evolver = (
+            EpistemicInstrumentEvolver(
+                expansion_interval=expansion_interval,
+                min_evaluations=generated_min_evaluations,
+            )
+            if enable_eie else None
+        )
+        self.pruning_residues: List[FailureResidue] = []
+        self.protected_pruning_attempts = 0
+        self.instrumented_candidates = 0
+
+    def set_generation(self, generation: int) -> None:
+        self.current_generation = generation
+
+    def _register_generated_module(
+        self,
+        spec: ModuleSpec,
+        source_action: str,
+        parent_modules: Sequence[str],
+    ) -> None:
+        self.registry.register(
+            spec,
+            birth_generation=self.current_generation,
+            source_action=source_action,
+            parent_modules=parent_modules,
+        )
+
+    def instrument_candidate(self, genome: ArchitectureGenome) -> ArchitectureGenome:
+        """Inject under-tested generated modules after EIE changes the policy."""
+        policy = self.pruning_policy
+        if policy.generated_probe_rate <= 0.0:
+            return genome
+        if random.random() >= policy.generated_probe_rate:
+            return genome
+
+        candidates = []
+        for record in self.registry.generated_records():
+            if self.registry.get(record.name) is None:
+                continue
+            if record.evaluations < policy.generated_min_evaluations:
+                candidates.append(record.name)
+
+        if not candidates:
+            return genome
+
+        g = genome.clone()
+        probe = LayerGene(module_name=random.choice(candidates), repeat=1)
+        if len(g.layers) < self.grammar.max_layers:
+            g.layers.insert(random.randint(0, len(g.layers)), probe)
+        elif g.layers:
+            g.layers[random.randrange(len(g.layers))] = probe
+        else:
+            g.layers.append(probe)
+        self.instrumented_candidates += 1
+        return g
 
     def expand_design_space(
         self, elite_genomes: List[ArchitectureGenome],
@@ -968,10 +1210,15 @@ class ArchitectureMeta:
             description=f"Library-learned: {key} (freq={count}, fit_sum={total_fit:.3f})",
             is_generated=True,
         )
-        self.registry.register(spec)
+        action = f"library:{fused_name}"
+        self._register_generated_module(
+            spec,
+            source_action=action,
+            parent_modules=[g.module_name for g in exemplar],
+        )
         logger.info(f"Meta: Library extraction -> '{fused_name}' "
                     f"(freq={count}, fit_sum={total_fit:.3f})")
-        return f"library:{fused_name}"
+        return action
 
     def _compose_sequential(self) -> Optional[str]:
         """Create a new module by sequentially composing two existing ones.
@@ -1004,8 +1251,13 @@ class ArchitectureMeta:
             description=f"Sequential: {a.name} -> {b.name}",
             is_generated=True,
         )
-        self.registry.register(spec)
-        return f"compose:{new_name}"
+        action = f"compose:{new_name}"
+        self._register_generated_module(
+            spec,
+            source_action=action,
+            parent_modules=[a.name, b.name],
+        )
+        return action
 
     def _specialize_hyperparams(
         self, genomes: List[ArchitectureGenome], fitnesses: List[float],
@@ -1050,22 +1302,62 @@ class ArchitectureMeta:
             description=f"Specialized {gene.module_name}: {merged_kwargs}",
             is_generated=True,
         )
-        self.registry.register(spec)
-        return f"specialize:{new_name}"
+        action = f"specialize:{new_name}"
+        self._register_generated_module(
+            spec,
+            source_action=action,
+            parent_modules=[gene.module_name],
+        )
+        return action
 
-    def prune_unused(self, elite_genomes: List[ArchitectureGenome],
-                     min_usage: int = 1) -> List[str]:
-        """Remove generated modules not used in any elite."""
-        used_modules = set()
+    def prune_unused(
+        self,
+        elite_genomes: List[ArchitectureGenome],
+        min_usage: int = 1,
+        generation: Optional[int] = None,
+    ) -> List[str]:
+        """Remove generated modules, unless EIE finds insufficient evidence."""
+        generation = self.current_generation if generation is None else generation
+        used_modules = Counter()
         for g in elite_genomes:
             for layer in g.layers:
-                used_modules.add(layer.module_name)
+                used_modules[layer.module_name] += 1
+
+        self.registry.record_elite_usage(elite_genomes, generation)
 
         pruned = []
         for name in list(self.registry.generated_names()):
-            if name not in used_modules:
-                if self.registry.unregister(name):
-                    pruned.append(name)
+            if used_modules.get(name, 0) >= min_usage:
+                continue
+
+            record = self.registry.generated_record(name)
+            if record is not None:
+                record.prune_attempts += 1
+
+            if self.instrument_evolver is not None and record is not None:
+                residue = self.instrument_evolver.evaluate_pruning_attempt(
+                    record=record,
+                    generation=generation,
+                    policy=self.pruning_policy,
+                )
+                if residue is not None:
+                    self.pruning_residues.append(residue)
+                    record.protected_from_prune += 1
+                    self.protected_pruning_attempts += 1
+                    logger.info(
+                        "EIE: protected %s from premature pruning "
+                        "(age=%s, evals=%s, grace=%s, min_evals=%s, probe=%.2f)",
+                        name,
+                        residue.age,
+                        residue.evaluations,
+                        self.pruning_policy.generated_grace_generations,
+                        self.pruning_policy.generated_min_evaluations,
+                        self.pruning_policy.generated_probe_rate,
+                    )
+                    continue
+
+            if self.registry.unregister(name):
+                pruned.append(name)
 
         return pruned
 
@@ -1218,9 +1510,11 @@ class RSINASEngine:
     def step(self, population_size: int = 6) -> dict:
         """One generation of the RSI loop."""
         self.generation += 1
+        self.meta.set_generation(self.generation)
         inserted = 0
         best_gen_fitness = 0.0
         best_gen_bpc = 99.0
+        pruned = []
 
         for _ in range(population_size):
             # Generate candidate
@@ -1238,6 +1532,8 @@ class RSINASEngine:
             else:
                 genome = self.grammar.random_genome(d_model=self.d_model)
 
+            genome = self.meta.instrument_candidate(genome)
+
             # Evaluate
             result = evaluate_architecture(
                 genome, self.registry,
@@ -1253,7 +1549,14 @@ class RSINASEngine:
                 param_count=result.param_count, behavior=behavior,
                 generation=self.generation,
             )
-            if self.archive.try_insert(entry):
+            was_inserted = self.archive.try_insert(entry)
+            self.registry.record_genome_evaluation(
+                genome=genome,
+                generation=self.generation,
+                fitness=result.fitness,
+                inserted=was_inserted,
+            )
+            if was_inserted:
                 inserted += 1
 
             best_gen_fitness = max(best_gen_fitness, result.fitness)
@@ -1274,7 +1577,10 @@ class RSINASEngine:
         if self.generation % self.pruning_interval == 0:
             entries = self.archive.all_entries()
             if entries:
-                pruned = self.meta.prune_unused([e.genome for e in entries])
+                pruned = self.meta.prune_unused(
+                    [e.genome for e in entries],
+                    generation=self.generation,
+                )
                 if pruned:
                     logger.info(f"Pruned {len(pruned)} unused modules: "
                                f"{', '.join(pruned[:3])}")
@@ -1290,6 +1596,14 @@ class RSINASEngine:
             "vocab_size": self.registry.size,
             "generated_modules": len(self.registry.generated_names()),
             "expansion_action": expansion_action,
+            "pruned_modules": len(pruned),
+            "eie_residues": len(self.meta.pruning_residues),
+            "instrument_mutations": self.meta.pruning_policy.mutation_count,
+            "protected_pruning_attempts": self.meta.protected_pruning_attempts,
+            "instrumented_candidates": self.meta.instrumented_candidates,
+            "generated_probe_rate": round(
+                self.meta.pruning_policy.generated_probe_rate, 4
+            ),
         }
         self.history.append(record)
         return record
@@ -1324,13 +1638,21 @@ def build_rsi_nas(
     train_steps: int = 150,
     expansion_interval: int = 5,
     pruning_interval: int = 10,
+    enable_eie: bool = True,
+    generated_min_evaluations: int = 2,
     corpus: str = None,
     device: torch.device = None,
 ) -> RSINASEngine:
     """Factory function to construct a complete RSI-NAS system."""
     registry = ModuleRegistry()
     grammar = ArchitectureGrammar(registry, max_layers=6, max_repeat=3)
-    meta = ArchitectureMeta(registry, grammar)
+    meta = ArchitectureMeta(
+        registry,
+        grammar,
+        enable_eie=enable_eie,
+        expansion_interval=expansion_interval,
+        generated_min_evaluations=generated_min_evaluations,
+    )
     archive = ArchitectureArchive(param_bins=6, depth_bins=5)
 
     return RSINASEngine(
@@ -1349,10 +1671,11 @@ def run_ablation(
     d_model: int = 48,
     train_steps: int = 100,
 ):
-    """Controlled ablation: FROZEN vs SELF-MODIFY.
+    """Controlled ablation: FROZEN vs baseline RSI vs EIE-enabled RSI.
 
     FROZEN: expansion_interval=999999 (no RSI)
-    SELF-MODIFY: expansion_interval=5 (RSI active)
+    SELF-MODIFY: expansion_interval=5 (library learning active)
+    AFIRSI-EIE: expansion_interval=5 plus instrument evolution for pruning races
     """
     if seeds is None:
         seeds = [42, 123, 456]
@@ -1367,13 +1690,15 @@ def run_ablation(
     print(f"  Device: {device}\n")
 
     conditions = [
-        ("FROZEN", 999999),
-        ("SELF-MODIFY", 5),
+        ("FROZEN", 999999, False),
+        ("SELF-MODIFY", 5, False),
+        ("AFIRSI-EIE", 5, True),
     ]
 
     all_results = {}
-    for label, interval in conditions:
-        print(f"  Condition: {label} (expansion_interval={interval})")
+    for label, interval, enable_eie in conditions:
+        print(f"  Condition: {label} "
+              f"(expansion_interval={interval}, eie={enable_eie})")
         results = []
         for seed in seeds:
             random.seed(seed)
@@ -1384,6 +1709,7 @@ def run_ablation(
                 d_model=d_model,
                 train_steps=train_steps,
                 expansion_interval=interval,
+                enable_eie=enable_eie,
                 device=device,
             )
             history = engine.run(generations=generations,
@@ -1395,7 +1721,9 @@ def run_ablation(
                   f"fitness={final['archive_best_fitness']:.4f} "
                   f"coverage={final['archive_coverage']:.3f} "
                   f"vocab={final['vocab_size']} "
-                  f"gen_modules={final['generated_modules']}")
+                  f"gen_modules={final['generated_modules']} "
+                  f"residues={final['eie_residues']} "
+                  f"instrument_mutations={final['instrument_mutations']}")
 
         all_results[label] = results
 
@@ -1413,9 +1741,12 @@ def run_ablation(
 
     frozen_bpc = np.mean([r["archive_best_bpc"] for r in all_results["FROZEN"]])
     modify_bpc = np.mean([r["archive_best_bpc"] for r in all_results["SELF-MODIFY"]])
+    eie_bpc = np.mean([r["archive_best_bpc"] for r in all_results["AFIRSI-EIE"]])
     delta = frozen_bpc - modify_bpc  # positive = MODIFY is better
+    eie_delta = modify_bpc - eie_bpc  # positive = EIE is better than baseline RSI
 
     print(f"\n  Delta BPC (FROZEN - MODIFY) = {delta:+.4f}")
+    print(f"  Delta BPC (MODIFY - AFIRSI-EIE) = {eie_delta:+.4f}")
     if delta > 0.05:
         print("  VERDICT: RSI_IMPROVES_ARCHITECTURE — Self-modification reduces BPC")
     elif delta > 0.01:
@@ -1427,6 +1758,12 @@ def run_ablation(
 
     gen_modules = [r["generated_modules"] for r in all_results["SELF-MODIFY"]]
     print(f"\n  Generated modules (SELF-MODIFY): {gen_modules}")
+    eie_modules = [r["generated_modules"] for r in all_results["AFIRSI-EIE"]]
+    print(f"  Generated modules (AFIRSI-EIE): {eie_modules}")
+    residues = [r["eie_residues"] for r in all_results["AFIRSI-EIE"]]
+    mutations = [r["instrument_mutations"] for r in all_results["AFIRSI-EIE"]]
+    print(f"  EIE residues detected: {residues}")
+    print(f"  Instrument mutations: {mutations}")
     print(f"  F_theo expansion: {sum(gen_modules)} new module types created")
     print(f"  F_eff question: Did they lower BPC?  Delta = {delta:+.4f}")
 
