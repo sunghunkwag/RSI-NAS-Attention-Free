@@ -82,6 +82,16 @@ class TestModulePrimitives:
         x = torch.randn(B, L, D)
         assert pf(x).shape == (B, L, D)
 
+    def test_perception_filter_preserves_length_with_even_kernel(self):
+        pf = PerceptionFilter(D, k=4, nf=2)
+        x = torch.randn(B, 17, D)
+        assert pf(x).shape == (B, 17, D)
+
+    def test_coarse_nca_preserves_odd_sequence_length(self):
+        m = CoarseNCA(D, stride=4, n_steps=1)
+        x = torch.randn(B, 17, D)
+        assert m(x).shape == (B, 17, D)
+
 
 # ── 2. ModuleRegistry ───────────────────────────────────────────────────────
 
@@ -379,6 +389,42 @@ class TestEpistemicInstrumentEvolution:
         assert any(layer.module_name == "probe_gen" for layer in instrumented.layers)
         assert meta.instrumented_candidates == 1
 
+    def test_meta_operator_policy_evolves_from_archive_evidence(self):
+        reg = ModuleRegistry()
+        grammar = ArchitectureGrammar(reg)
+        meta = ArchitectureMeta(
+            reg,
+            grammar,
+            enable_eie=True,
+            enable_meta_operator_evolution=True,
+        )
+        compose_spec = ModuleSpec(
+            name="compose_winner",
+            builder=lambda d, **kw: GatedFFN(d),
+            default_kwargs={},
+            param_cost=1.0,
+            is_generated=True,
+        )
+        library_spec = ModuleSpec(
+            name="library_loser",
+            builder=lambda d, **kw: GatedFFN(d),
+            default_kwargs={},
+            param_cost=1.0,
+            is_generated=True,
+        )
+        reg.register(compose_spec, birth_generation=1,
+                     source_action="compose:compose_winner")
+        reg.register(library_spec, birth_generation=1,
+                     source_action="library:library_loser")
+        reg.generated_record("compose_winner").evaluations = 3
+        reg.generated_record("compose_winner").archive_insertions = 2
+        reg.generated_record("compose_winner").best_fitness = 0.2
+
+        weights = meta.refresh_meta_operator_policy()
+
+        assert weights["compose"] > weights["library"]
+        assert meta.meta_operator_policy_updates == 1
+
 
 # ── 9. ArchitectureArchive ──────────────────────────────────────────────────
 
@@ -459,6 +505,25 @@ class TestRSILoop:
         assert record["instrument_mutations"] >= 1
         assert record["protected_pruning_attempts"] >= 1
         assert record["generated_probe_rate"] > 0.0
+
+    def test_engine_updates_meta_operator_policy_from_generated_evidence(self):
+        random.seed(7); np.random.seed(7); torch.manual_seed(7)
+        engine = build_rsi_nas(
+            d_model=D,
+            train_steps=1,
+            expansion_interval=1,
+            pruning_interval=1,
+            generated_min_evaluations=1,
+        )
+        history = engine.run(generations=3, population_size=2)
+        final = history[-1]
+
+        assert final["instrumented_candidates"] >= 1
+        assert final["meta_operator_policy_updates"] >= 1
+        assert any(
+            weight > 1.0
+            for weight in final["meta_operator_weights"].values()
+        )
 
 
 # ── 11. Ablation structure ─────────────────────────────────────────────────
