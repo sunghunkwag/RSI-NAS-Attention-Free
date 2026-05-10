@@ -21,14 +21,20 @@ from typing import Dict, List
 import numpy as np
 import torch
 
-from rsi_nas import build_rsi_nas
+from rsi_nas import EIEConfig, build_rsi_nas
 
 
 def parse_seeds(raw: str) -> List[int]:
     return [int(part.strip()) for part in raw.split(",") if part.strip()]
 
 
-def run_case(args: argparse.Namespace, seed: int, enable_eie: bool) -> Dict:
+def run_case(
+    args: argparse.Namespace,
+    seed: int,
+    enable_eie: bool,
+    eie_config: EIEConfig | None = None,
+    condition_name: str | None = None,
+) -> Dict:
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -40,6 +46,7 @@ def run_case(args: argparse.Namespace, seed: int, enable_eie: bool) -> Dict:
         pruning_interval=args.pruning_interval,
         generated_min_evaluations=args.generated_min_evaluations,
         enable_eie=enable_eie,
+        eie_config=eie_config,
     )
     history = engine.run(
         generations=args.generations,
@@ -50,7 +57,10 @@ def run_case(args: argparse.Namespace, seed: int, enable_eie: bool) -> Dict:
 
     return {
         "seed": seed,
-        "condition": "AFIRSI-EIE" if enable_eie else "SELF-MODIFY",
+        "condition": (
+            condition_name
+            or ("AFIRSI-EIE" if enable_eie else "SELF-MODIFY")
+        ),
         "best_bpc": final["archive_best_bpc"],
         "generated_modules": final["generated_modules"],
         "eie_residues": final["eie_residues"],

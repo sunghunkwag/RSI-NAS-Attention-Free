@@ -19,6 +19,7 @@ sample, train, and archive architectures that used them.
 | 1 | `ModuleRegistry` | Stores primitive and generated attention-free modules with lifecycle evidence |
 | 2 | `ArchitectureGrammar` | Builds and mutates architecture genomes |
 | 3 | `ArchitectureMeta` | Creates new modules through library extraction, composition, and specialization |
+| 3a | `EIEConfig` | Mutable instrument policy optimized by the outer RSI loop |
 | 4 | `EpistemicInstrumentEvolver` | Detects instrument failure residue and mutates pruning/probing policy |
 | Archive | `ArchitectureArchive` | MAP-Elites quality-diversity archive over parameter count and depth |
 
@@ -81,6 +82,27 @@ This creates a closed loop:
 `failure residue -> instrument mutation -> changed experiment unit -> real
 evaluation evidence -> meta-operator policy update -> archive or prune decision`.
 
+## Outer Recursive Policy Search
+
+`open_ended_rsi.py` adds an outer loop over the EIE/AFIRSI policy itself. The
+inner RSI loop still performs real architecture search and SGD evaluation. The
+outer loop then mutates the policy that controls pruning grace, probing,
+generated-module experiment scaffolds, and meta-operator evidence weighting.
+
+The outer loop accepts a policy mutation only when it improves over the previous
+champion on paired seeds and keeps the mechanism active:
+
+- generated modules receive real evaluations,
+- generated modules enter the MAP-Elites archive,
+- failure residues trigger instrument mutations,
+- meta-operator weights update from generated-module evidence,
+- mean BPC beats the non-EIE `SELF-MODIFY` baseline,
+- the mutated EIE policy scores above the previous champion policy.
+
+This is a bounded open-ended-RSI proxy: it demonstrates recursive
+self-modification of the RSI instrument policy across validation cycles. It is
+not mathematical proof of unbounded open-ended RSI.
+
 ## Usage
 
 ```bash
@@ -109,6 +131,15 @@ This checks a bounded claim only: generated modules that baseline
 self-modification prunes immediately are protected, probed, and evaluated under
 AFIRSI-EIE. It is not a proof of open-ended RSI or consistent BPC improvement.
 
+Run the outer recursive policy-improvement validation:
+
+```bash
+python open_ended_rsi.py
+```
+
+Use `--cycles`, `--seeds`, `--generations`, and `--train-steps` to increase the
+validation budget. The default run is intentionally CPU-sized.
+
 ## Validation
 
 Run the test suite:
@@ -124,7 +155,7 @@ expansion, MAP-Elites insertion, loop integration, and EIE/AFIRSI behavior.
 Current local validation:
 
 ```text
-50 passed
+51 passed
 ```
 
 Focused EIE validation on five CPU seeds:
@@ -139,6 +170,16 @@ AFIRSI-EIE mean best BPC: 7.6757
 Mean BPC delta (SELF-MODIFY - AFIRSI-EIE): +0.0225
 AFIRSI-EIE seed wins: 3 / 5
 Mechanism valid: true
+```
+
+Outer recursive policy-improvement validation on three CPU seeds:
+
+```text
+cycle=0 accepted=False champion=seed_policy score=0.0757 delta=+0.0555 archive=5 evals=17
+cycle=1 accepted=True champion=cycle1_clean_probe_archive score=0.0805 delta=+0.0553 archive=9 evals=19
+cycle=2 accepted=False champion=cycle1_clean_probe_archive score=0.0805 delta=+0.0553 archive=9 evals=19
+open_ended_proxy_valid: true
+accepted_improvements: 1
 ```
 
 ## Source Lineage
