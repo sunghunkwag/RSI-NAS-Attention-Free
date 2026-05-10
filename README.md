@@ -1,88 +1,130 @@
-# RSI-NAS: Attention-Free Neural Architecture Search via Recursive Self-Improvement
+# RSI-NAS: Attention-Free Neural Architecture Search with EIE/AFIRSI
 
-**Unified integration of two independent research tracks into a single self-improving system.**
+This repository implements a recursive self-improvement loop for attention-free
+neural architecture search. The system does not optimize a proxy score only: each
+candidate architecture is built, trained with SGD on character-level language
+modeling, and inserted into a MAP-Elites archive when it improves a behavior
+cell.
 
-## What This Is
+The current implementation extends the original three-layer RSI-NAS system with
+EIE/AFIRSI: Epistemic Instrument Evolution for generated neural modules. This was
+added to address the pruning-propagation race observed in the previous ablation:
+generated modules could be removed before the search loop had enough time to
+sample, train, and archive architectures that used them.
 
-A system that **evolves attention-free neural architectures** using a three-layer recursive self-improvement engine:
+## Architecture
 
 | Layer | Component | Role |
-|-------|-----------|------|
-| 1 | `ModuleRegistry` | Primitive neural modules (NCA, GatedShiftMixer, FractalGNN, CoarseNCA, SqueezeExcite, GatedFFN) |
-| 2 | `ArchitectureGrammar` | Composition rules: swap, add, remove, tweak, crossover |
-| 3 | `ArchitectureMeta` | Meta-rules: library extraction, sequential composition, hyperparameter specialization |
+| --- | --- | --- |
+| 1 | `ModuleRegistry` | Stores primitive and generated attention-free modules with lifecycle evidence |
+| 2 | `ArchitectureGrammar` | Builds and mutates architecture genomes |
+| 3 | `ArchitectureMeta` | Creates new modules through library extraction, composition, and specialization |
+| 4 | `EpistemicInstrumentEvolver` | Detects instrument failure residue and mutates pruning/probing policy |
+| Archive | `ArchitectureArchive` | MAP-Elites quality-diversity archive over parameter count and depth |
 
-Fitness is measured by **actual SGD training** on character-level language modeling (bits-per-character), not proxy metrics. MAP-Elites archive provides quality-diversity search over (param_count, depth) behavior space.
+## Attention-Free Primitives
 
-## Architecture Primitives (Zero Attention)
+All primitives expose a uniform `(B, L, D) -> (B, L, D)` interface and avoid
+attention softmax:
 
-All modules have uniform `(B, L, D) → (B, L, D)` interface, O(L) complexity:
+- `NCAStep`: perceive-react-diffuse cellular automaton block
+- `GatedShiftMixer`: fixed-offset gated sequence mixing
+- `FractalGNNBlock`: chunk pooling, graph convolution, and gated broadcast
+- `CoarseNCA`: downsample, coarse NCA update, and upsample
+- `SqueezeExcite`: global channel recalibration
+- `GatedFFN`: SwiGLU-style feed-forward block
 
-- **NCAStep** — Perceive-react-diffuse cellular automaton cycle
-- **GatedShiftMixer** — Content-preserving long-range via fixed-offset gating (no Q/K/V, no softmax)
-- **FractalGNNBlock** — Chunk-pool → graph convolution → gated broadcast
-- **CoarseNCA** — Multi-scale: downsample → NCA at coarse resolution → upsample
-- **SqueezeExcite** — Global channel recalibration
-- **GatedFFN** — SwiGLU feed-forward
+## Recursive Self-Improvement Loop
 
-## Key Mechanism: Library Learning for Neural Architectures
+Each generation performs:
 
-DreamCoder-style pattern extraction applied to **layer topology** instead of program syntax:
+1. Generate candidate architectures through mutation or crossover.
+2. Optionally instrument candidates with under-tested generated modules when EIE
+   has activated probing.
+3. Train each candidate with SGD and compute bits-per-character.
+4. Insert improvements into the MAP-Elites archive.
+5. Periodically expand the module vocabulary through meta-grammar actions.
+6. Periodically prune generated modules, unless EIE detects insufficient evidence.
 
-1. Scan elite architectures for recurring 2-3 layer sequences
-2. If a pattern appears in multiple high-fitness elites, extract it as a new single module
-3. Register it in the ModuleRegistry — the evolutionary loop can now use it as a primitive
-4. Prune unused generated modules to prevent vocabulary bloat
+The EIE/AFIRSI path is not a standalone simulator. It is wired into the actual
+search loop and changes the live instruments used by the loop.
 
-## Ablation Results (CPU, 5 seeds × 8 generations)
+## EIE/AFIRSI Mechanism
 
-| Condition | BPC (mean ± std) | Generated Modules |
-|-----------|-------------------|-------------------|
-| FROZEN (no RSI) | 6.339 ± 0.151 | 0 |
-| SELF-MODIFY (RSI active) | 6.316 ± 0.145 | 1-2 per seed |
+The ChatGPT brainstorming thread produced the key design constraint: real RSI
+must not only generate new candidates, it must also rewrite the instruments that
+observe, judge, and preserve evidence.
 
-- **Delta = +0.023 BPC** (SELF-MODIFY better), Cohen's d = 0.50 (medium effect)
-- SELF-MODIFY wins 1/5 seeds, ties 4/5, **never loses**
-- Library extraction **fires in all 5 seeds** — mechanism is live, not dead code
-- Critical finding: **pruning-propagation race condition** — generated modules get pruned before they can propagate to elites
+This implementation turns that idea into code:
 
-### Key Difference from Symbolic RSI
+- `GeneratedModuleRecord` tracks birth generation, source action, parents,
+  evaluations, archive insertions, elite usage, best fitness, and pruning
+  attempts.
+- `FailureResidue` records a concrete epistemic failure:
+  `PRUNING_PROPAGATION_RACE`.
+- `EpistemicInstrumentEvolver` mutates `PruningPolicy` when a generated module
+  is about to be pruned before the evidence window is satisfied.
+- The mutated policy applies a grace window of at least `3 * expansion_interval`,
+  requires a minimum generated-module evaluation count, and enables generated
+  module probing.
+- `ArchitectureMeta.instrument_candidate()` injects under-tested generated
+  modules into real candidate genomes so they receive actual SGD evaluation.
 
-In the symbolic RSI system (`main.py`), self_encode and PolymorphicOp were **DEAD_CODE** — never reached by the evolutionary loop. Here, library extraction is **ACTIVE** in every seed. The bottleneck is operational (pruning timing), not structural (unreachability).
+This creates a closed loop:
+
+`failure residue -> instrument mutation -> changed candidate generation ->
+real evaluation evidence -> archive or prune decision`.
 
 ## Usage
 
 ```bash
-# Quick demo (15 generations)
 python rsi_nas.py
+```
 
-# Controlled ablation: FROZEN vs SELF-MODIFY
+Run the controlled ablation:
+
+```bash
 python rsi_nas.py ablation
 ```
 
-## Requirements
+The ablation now compares:
 
+- `FROZEN`: no design-space expansion
+- `SELF-MODIFY`: baseline meta-grammar expansion without EIE
+- `AFIRSI-EIE`: meta-grammar expansion plus epistemic instrument evolution
+
+## Validation
+
+Run the test suite:
+
+```bash
+python -m pytest test_rsi_nas.py -q
 ```
-torch>=2.0
-numpy
+
+The suite covers primitive modules, registry behavior, genome construction,
+network building, SGD fitness evaluation, grammar mutation, meta-grammar
+expansion, MAP-Elites insertion, loop integration, and EIE/AFIRSI behavior.
+
+Current local validation:
+
+```text
+46 passed
 ```
 
 ## Source Lineage
 
-| File | Origin |
-|------|--------|
-| NCAStep, GatedShiftMixer, CoarseNCA | `afn3.py` (Adaptive Field Network v3) |
-| FractalGNNBlock | `fractal_gnn.py` |
-| PerceptionFilter, ReactionGate | `nca_lm.py` (Neural Cellular Automata LM) |
-| RSI 3-layer framework pattern | `main.py` (RSI-Exploration) |
+| Source | Role |
+| --- | --- |
+| `afn3.py` | GatedShiftMixer, NCAStep, CoarseNCA, SqueezeExcite, GatedFFN lineage |
+| `fractal_gnn.py` | FractalGNNBlock lineage |
+| `nca_lm.py` | PerceptionFilter and ReactionGate lineage |
+| `main.py` | Three-layer RSI framework pattern |
+| ChatGPT RSI/EIE discussion | AFIRSI framing: failure residue drives instrument evolution |
 
-## Next Steps (GPU required)
+## Next Research Checks
 
-1. Fix pruning grace period (min 3× expansion_interval)
-2. Scale: d_model=64, train_steps=200, 30+ generations, 10 seeds
-3. Baseline comparison: Transformer (same param budget) vs best RSI-NAS architecture
-4. That comparison table changes everything.
-
-## Architecture
-
-Built entirely via **no-code architect methodology**: design → instruct → delegate to AI → verify → correct. No direct coding. 820 lines, self-contained.
+- Run longer GPU ablations with `d_model=64`, `train_steps=200`, 30+ generations,
+  and multiple seeds.
+- Compare `AFIRSI-EIE` against `SELF-MODIFY` and `FROZEN` on final BPC, archive
+  coverage, generated-module survival, and generated-module archive insertions.
+- Add a fixed-budget Transformer baseline with matched parameter counts.

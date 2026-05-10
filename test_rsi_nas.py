@@ -10,9 +10,10 @@ Covers:
   5. Fitness evaluation — runs SGD, returns valid BPC
   6. ArchitectureGrammar — all mutation operators
   7. ArchitectureMeta — library extraction, sequential composition, specialization
-  8. ArchitectureArchive — insertion, behavior descriptor, coverage
-  9. RSI loop integration — step() produces valid records
-  10. Ablation structure — FROZEN vs SELF-MODIFY divergence
+  8. EpistemicInstrumentEvolution — pruning residue, policy mutation, probing
+  9. ArchitectureArchive — insertion, behavior descriptor, coverage
+  10. RSI loop integration — step() produces valid records
+  11. Ablation structure — FROZEN vs SELF-MODIFY divergence
 """
 
 import copy
@@ -310,7 +311,76 @@ class TestArchitectureMeta:
         assert reg.size == 6
 
 
-# ── 8. ArchitectureArchive ──────────────────────────────────────────────────
+# ── 8. EpistemicInstrumentEvolution ─────────────────────────────────────────
+
+class TestEpistemicInstrumentEvolution:
+
+    def test_eie_detects_pruning_propagation_race(self):
+        reg = ModuleRegistry()
+        grammar = ArchitectureGrammar(reg)
+        meta = ArchitectureMeta(
+            reg,
+            grammar,
+            enable_eie=True,
+            expansion_interval=5,
+            generated_min_evaluations=2,
+        )
+        meta.set_generation(5)
+        spec = ModuleSpec(name="test_gen", builder=lambda d, **kw: GatedFFN(d),
+                          default_kwargs={}, param_cost=1.0, is_generated=True)
+        reg.register(spec, birth_generation=5, source_action="compose:test_gen")
+
+        genomes = [ArchitectureGenome(layers=[LayerGene("nca_step")], d_model=D)]
+        pruned = meta.prune_unused(genomes, generation=5)
+
+        assert pruned == []
+        assert reg.get("test_gen") is not None
+        assert len(meta.pruning_residues) == 1
+        assert meta.pruning_residues[0].residue_type == "PRUNING_PROPAGATION_RACE"
+        assert meta.pruning_policy.generated_grace_generations == 15
+        assert meta.pruning_policy.generated_min_evaluations == 2
+        assert meta.pruning_policy.generated_probe_rate > 0.0
+        assert meta.pruning_policy.mutation_count == 1
+
+    def test_eie_allows_prune_after_evidence_window(self):
+        reg = ModuleRegistry()
+        grammar = ArchitectureGrammar(reg)
+        meta = ArchitectureMeta(
+            reg,
+            grammar,
+            enable_eie=True,
+            expansion_interval=5,
+            generated_min_evaluations=2,
+        )
+        spec = ModuleSpec(name="old_gen", builder=lambda d, **kw: GatedFFN(d),
+                          default_kwargs={}, param_cost=1.0, is_generated=True)
+        reg.register(spec, birth_generation=0, source_action="compose:old_gen")
+        reg.generated_record("old_gen").evaluations = 2
+
+        genomes = [ArchitectureGenome(layers=[LayerGene("nca_step")], d_model=D)]
+        pruned = meta.prune_unused(genomes, generation=20)
+
+        assert pruned == ["old_gen"]
+        assert reg.get("old_gen") is None
+
+    def test_eie_instruments_candidate_with_under_tested_generated_module(self):
+        reg = ModuleRegistry()
+        grammar = ArchitectureGrammar(reg)
+        meta = ArchitectureMeta(reg, grammar, enable_eie=True)
+        spec = ModuleSpec(name="probe_gen", builder=lambda d, **kw: GatedFFN(d),
+                          default_kwargs={}, param_cost=1.0, is_generated=True)
+        reg.register(spec, birth_generation=0, source_action="compose:probe_gen")
+        meta.pruning_policy.generated_probe_rate = 1.0
+        meta.pruning_policy.generated_min_evaluations = 2
+
+        genome = ArchitectureGenome(layers=[LayerGene("nca_step")], d_model=D)
+        instrumented = meta.instrument_candidate(genome)
+
+        assert any(layer.module_name == "probe_gen" for layer in instrumented.layers)
+        assert meta.instrumented_candidates == 1
+
+
+# ── 9. ArchitectureArchive ──────────────────────────────────────────────────
 
 class TestArchitectureArchive:
 
@@ -345,7 +415,7 @@ class TestArchitectureArchive:
         assert 0 <= b[1] < 5
 
 
-# ── 9. RSI loop integration ────────────────────────────────────────────────
+# ── 10. RSI loop integration ───────────────────────────────────────────────
 
 class TestRSILoop:
 
@@ -373,8 +443,25 @@ class TestRSILoop:
         # First gen BPC should be >= last gen BPC (archive keeps best)
         assert history[-1]["archive_best_bpc"] <= history[0]["archive_best_bpc"]
 
+    def test_engine_eie_protects_generated_modules_from_immediate_prune(self):
+        random.seed(7); np.random.seed(7); torch.manual_seed(7)
+        engine = build_rsi_nas(
+            d_model=D,
+            train_steps=1,
+            expansion_interval=1,
+            pruning_interval=1,
+            generated_min_evaluations=1,
+        )
+        record = engine.step(population_size=1)
 
-# ── 10. Ablation structure ──────────────────────────────────────────────────
+        assert record["generated_modules"] >= 1
+        assert record["eie_residues"] >= 1
+        assert record["instrument_mutations"] >= 1
+        assert record["protected_pruning_attempts"] >= 1
+        assert record["generated_probe_rate"] > 0.0
+
+
+# ── 11. Ablation structure ─────────────────────────────────────────────────
 
 class TestAblationStructure:
 
