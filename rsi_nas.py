@@ -57,6 +57,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from afirsi_core import (
+    Evaluator,
+    FailureResidue,
+    FailureResidueLedger,
+    InstrumentMutationContract,
+    ObservationChannel,
+    OperatorGenerator,
+    ProblemSpaceVersionGraph,
+)
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -963,19 +973,6 @@ class EIEConfig:
 
 
 @dataclass
-class FailureResidue:
-    """A durable signal that the current RSI instrument is mismeasuring progress."""
-    generation: int
-    module_name: str
-    residue_type: str
-    age: int
-    evaluations: int
-    source_action: str
-    policy_before: Dict[str, float]
-    policy_after: Dict[str, float]
-
-
-@dataclass
 class MetaOperatorStats:
     """Evidence used to evolve the meta-layer's own generation operators."""
     attempts: int = 0
@@ -1002,10 +999,42 @@ class EpistemicInstrumentEvolver:
         expansion_interval: int,
         min_evaluations: int = 2,
         config: Optional[EIEConfig] = None,
+        ledger: Optional[FailureResidueLedger] = None,
+        observation_channel: Optional[ObservationChannel] = None,
+        evaluator: Optional[Evaluator] = None,
+        operator_generator: Optional[OperatorGenerator] = None,
+        mutation_contract: Optional[InstrumentMutationContract] = None,
+        problem_space_graph: Optional[ProblemSpaceVersionGraph] = None,
     ):
         self.config = config or EIEConfig()
         self.expansion_interval = max(1, expansion_interval)
         self.min_evaluations = max(0, min_evaluations)
+        self.ledger = ledger if ledger is not None else FailureResidueLedger()
+        self.observation_channel = (
+            observation_channel
+            if observation_channel is not None
+            else ObservationChannel()
+        )
+        self.evaluator = evaluator if evaluator is not None else Evaluator(
+            expansion_interval=self.expansion_interval,
+            min_evaluations=self.min_evaluations,
+            config=self.config,
+        )
+        self.operator_generator = (
+            operator_generator
+            if operator_generator is not None
+            else OperatorGenerator()
+        )
+        self.mutation_contract = (
+            mutation_contract
+            if mutation_contract is not None
+            else InstrumentMutationContract()
+        )
+        self.problem_space_graph = (
+            problem_space_graph
+            if problem_space_graph is not None
+            else ProblemSpaceVersionGraph()
+        )
         self.residues: List[FailureResidue] = []
 
     def evaluate_pruning_attempt(
@@ -1014,56 +1043,110 @@ class EpistemicInstrumentEvolver:
         generation: int,
         policy: PruningPolicy,
     ) -> Optional[FailureResidue]:
-        target_grace = max(
-            policy.generated_grace_generations,
-            int(math.ceil(self.config.grace_multiplier * self.expansion_interval)),
+        parent_version_id = self.problem_space_graph.active_version_id
+        policy_before = self._policy_snapshot(policy)
+        observation = self.observation_channel.observe_generated_module(
+            record=record,
+            generation=generation,
+            triggering_event="prune_attempt",
+            policy=policy,
+            problem_space_version=parent_version_id,
         )
-        target_evals = max(policy.generated_min_evaluations,
-                           self.min_evaluations)
-        age = max(0, generation - record.birth_generation)
-        under_observed = age < target_grace or record.evaluations < target_evals
-        if not under_observed:
+        residues = self.evaluator.evaluate([observation])
+        if not residues:
             return None
 
-        before = {
-            "generated_grace_generations": policy.generated_grace_generations,
-            "generated_min_evaluations": policy.generated_min_evaluations,
-            "generated_probe_rate": policy.generated_probe_rate,
-            "mutation_count": policy.mutation_count,
-        }
-
-        changed = (
-            policy.generated_grace_generations < target_grace or
-            policy.generated_min_evaluations < target_evals or
-            policy.generated_probe_rate < self.config.probe_rate
+        residue = self.ledger.record(residues[0])
+        patches = self.operator_generator.generate(
+            [residue],
+            instrument_policy=policy_before,
+            config=self.config,
+            parent_version_id=parent_version_id,
         )
-        if changed:
-            policy.generated_grace_generations = target_grace
-            policy.generated_min_evaluations = target_evals
-            policy.generated_probe_rate = max(policy.generated_probe_rate,
-                                              self.config.probe_rate)
-            policy.mutation_count += 1
-            policy.last_mutation_generation = generation
+        if patches:
+            patch = patches[0]
+            self.mutation_contract.validate_patch(patch)
+            self._apply_patch(policy, patch.target_updates, generation)
+            residue.policy_before = policy_before
+            residue.policy_after = self._policy_snapshot(policy)
+            residue.proposed_mutation_targets = sorted(
+                set(residue.proposed_mutation_targets)
+                | set(patch.target_updates)
+            )
+            self.ledger.mark_addressed(residue.residue_id, patch.patch_id)
+            self.problem_space_graph.create_child(
+                parent_version_id=parent_version_id,
+                patch_id=patch.patch_id,
+                residue_ids=[residue.residue_id],
+                observation_channel_version=self.observation_channel.version,
+                evaluator_version=self.evaluator.version,
+                instrument_policy=self._instrument_policy_snapshot(policy),
+            )
+        else:
+            residue.policy_before = policy_before
+            residue.policy_after = policy_before
 
-        after = {
-            "generated_grace_generations": policy.generated_grace_generations,
-            "generated_min_evaluations": policy.generated_min_evaluations,
-            "generated_probe_rate": policy.generated_probe_rate,
-            "mutation_count": policy.mutation_count,
-        }
-
-        residue = FailureResidue(
-            generation=generation,
-            module_name=record.name,
-            residue_type="PRUNING_PROPAGATION_RACE",
-            age=age,
-            evaluations=record.evaluations,
-            source_action=record.source_action,
-            policy_before=before,
-            policy_after=after,
-        )
         self.residues.append(residue)
         return residue
+
+    def _policy_snapshot(self, policy: PruningPolicy) -> Dict[str, float]:
+        return {
+            "generated_grace_generations": policy.generated_grace_generations,
+            "generated_min_evaluations": policy.generated_min_evaluations,
+            "generated_probe_rate": policy.generated_probe_rate,
+            "mutation_count": policy.mutation_count,
+            "last_mutation_generation": policy.last_mutation_generation,
+        }
+
+    def _instrument_policy_snapshot(self, policy: PruningPolicy) -> Dict[str, object]:
+        return {
+            "pruning_policy": self._policy_snapshot(policy),
+            "eie_config": {
+                "grace_multiplier": self.config.grace_multiplier,
+                "probe_rate": self.config.probe_rate,
+                "clean_probe_first_eval": self.config.clean_probe_first_eval,
+                "meta_eval_gain": self.config.meta_eval_gain,
+                "meta_archive_gain": self.config.meta_archive_gain,
+                "meta_fitness_gain": self.config.meta_fitness_gain,
+                "meta_exploration_floor": self.config.meta_exploration_floor,
+            },
+        }
+
+    def _apply_patch(
+        self,
+        policy: PruningPolicy,
+        updates: Dict[str, object],
+        generation: int,
+    ) -> None:
+        changed = False
+        if "generated_grace_generations" in updates:
+            target = int(updates["generated_grace_generations"])
+            if policy.generated_grace_generations < target:
+                policy.generated_grace_generations = target
+                changed = True
+        if "generated_min_evaluations" in updates:
+            target = int(updates["generated_min_evaluations"])
+            if policy.generated_min_evaluations < target:
+                policy.generated_min_evaluations = target
+                changed = True
+        if "generated_probe_rate" in updates:
+            target = float(updates["generated_probe_rate"])
+            if policy.generated_probe_rate < target:
+                policy.generated_probe_rate = target
+                changed = True
+        if "probe_rate" in updates:
+            target = float(updates["probe_rate"])
+            if policy.generated_probe_rate < target:
+                policy.generated_probe_rate = target
+                changed = True
+        if "clean_probe_first_eval" in updates:
+            target = bool(updates["clean_probe_first_eval"])
+            if self.config.clean_probe_first_eval != target:
+                self.config.clean_probe_first_eval = target
+                changed = True
+        if changed:
+            policy.mutation_count += 1
+            policy.last_mutation_generation = generation
 
 
 class ArchitectureMeta:
@@ -1095,11 +1178,31 @@ class ArchitectureMeta:
         self.current_generation = 0
         self.pruning_policy = PruningPolicy()
         self.eie_config = eie_config or EIEConfig()
+        self.observation_channel = ObservationChannel()
+        self.failure_residue_ledger = FailureResidueLedger()
+        self.afirsi_evaluator = Evaluator(
+            expansion_interval=expansion_interval,
+            min_evaluations=generated_min_evaluations,
+            config=self.eie_config,
+        )
+        self.operator_generator = OperatorGenerator()
+        self.mutation_contract = InstrumentMutationContract()
+        self.problem_space_graph = ProblemSpaceVersionGraph(
+            root_policy=self._instrument_policy_snapshot(),
+            observation_channel_version=self.observation_channel.version,
+            evaluator_version=self.afirsi_evaluator.version,
+        )
         self.instrument_evolver = (
             EpistemicInstrumentEvolver(
                 expansion_interval=expansion_interval,
                 min_evaluations=generated_min_evaluations,
                 config=self.eie_config,
+                ledger=self.failure_residue_ledger,
+                observation_channel=self.observation_channel,
+                evaluator=self.afirsi_evaluator,
+                operator_generator=self.operator_generator,
+                mutation_contract=self.mutation_contract,
+                problem_space_graph=self.problem_space_graph,
             )
             if enable_eie else None
         )
@@ -1117,6 +1220,32 @@ class ArchitectureMeta:
             "specialize": MetaOperatorStats(),
         }
         self.meta_operator_policy_updates = 0
+
+    def _instrument_policy_snapshot(self) -> Dict[str, Dict[str, float]]:
+        return {
+            "pruning_policy": {
+                "generated_grace_generations": (
+                    self.pruning_policy.generated_grace_generations
+                ),
+                "generated_min_evaluations": (
+                    self.pruning_policy.generated_min_evaluations
+                ),
+                "generated_probe_rate": self.pruning_policy.generated_probe_rate,
+                "mutation_count": self.pruning_policy.mutation_count,
+                "last_mutation_generation": (
+                    self.pruning_policy.last_mutation_generation
+                ),
+            },
+            "eie_config": {
+                "grace_multiplier": self.eie_config.grace_multiplier,
+                "probe_rate": self.eie_config.probe_rate,
+                "clean_probe_first_eval": self.eie_config.clean_probe_first_eval,
+                "meta_eval_gain": self.eie_config.meta_eval_gain,
+                "meta_archive_gain": self.eie_config.meta_archive_gain,
+                "meta_fitness_gain": self.eie_config.meta_fitness_gain,
+                "meta_exploration_floor": self.eie_config.meta_exploration_floor,
+            },
+        }
 
     def set_generation(self, generation: int) -> None:
         self.current_generation = generation
@@ -1735,6 +1864,10 @@ class RSINASEngine:
             "instrumented_candidates": self.meta.instrumented_candidates,
             "generated_probe_rate": round(
                 self.meta.pruning_policy.generated_probe_rate, 4
+            ),
+            "problem_space_version": self.meta.problem_space_graph.active_version_id,
+            "failure_residue_ledger_entries": len(
+                self.meta.failure_residue_ledger
             ),
             "meta_operator_policy_updates": self.meta.meta_operator_policy_updates,
             "meta_operator_weights": self.meta.meta_operator_weights(),
