@@ -20,6 +20,7 @@ sample, train, and archive architectures that used them.
 | 2 | `ArchitectureGrammar` | Builds and mutates architecture genomes |
 | 3 | `ArchitectureMeta` | Creates new modules through library extraction, composition, and specialization |
 | 3a | `EIEConfig` | Mutable instrument policy optimized by the outer RSI loop |
+| 3b | `omega_adapter` | AFIRSI residue export and OMEGA-style instrument synthesis |
 | 4 | `EpistemicInstrumentEvolver` | Detects instrument failure residue and mutates pruning/probing policy |
 | Archive | `ArchitectureArchive` | MAP-Elites quality-diversity archive over parameter count and depth |
 
@@ -103,6 +104,41 @@ This is a bounded open-ended-RSI proxy: it demonstrates recursive
 self-modification of the RSI instrument policy across validation cycles. It is
 not mathematical proof of unbounded open-ended RSI.
 
+## AFIRSI-OMEGA Integration Prototype
+
+`open_ended_rsi_omega.py` replaces the fixed hand-designed
+`mutate_candidate()` outer loop with a residue-conditioned instrument synthesis
+loop inspired by the OMEGA-THDSE pattern: deterministic symbolic interpretation,
+explicit mutation contracts, and causal provenance.
+
+The integration path is:
+
+`FailureResidue -> StructuredAFIRSIResidue -> missing-instrument constraints ->
+InstrumentPatch -> EIEConfig policy -> paired-seed validation -> holdout-seed
+validation -> accepted parent policy`.
+
+The adapter is intentionally local and does not call external APIs or hidden
+services. It uses OMEGA-style deterministic synthesis rather than importing a
+runtime dependency from the separate `sunghunkwag/OMEGA-THDSE` repository.
+
+The integration layer contains:
+
+- `omega_adapter/schemas.py`: JSON schema for residues, instrument patches, and
+  the mutation contract.
+- `omega_adapter/residue_export.py`: exporter for real residues produced by
+  completed RSI-NAS runs.
+- `omega_adapter/instrument_generator.py`: residue-conditioned OMEGA-style
+  patch generator.
+- `omega_adapter/policy_import.py`: validated conversion from instrument patch
+  to executable `EIEConfig`.
+- `open_ended_rsi_omega.py`: paired-seed plus holdout-seed outer loop with JSON
+  provenance report.
+
+The mutation contract permits EIE policy fields, generated-module evaluation
+budget, candidate scoring coefficients, evaluator terms, archive priority, and
+scaffold strategy. It forbids fake BPC values, direct success flags, bypassing
+real build/train/evaluate, and accepting without paired and holdout validation.
+
 ## Usage
 
 ```bash
@@ -139,6 +175,19 @@ python open_ended_rsi.py
 
 Use `--cycles`, `--seeds`, `--generations`, and `--train-steps` to increase the
 validation budget. The default run is intentionally CPU-sized.
+
+Run the AFIRSI-OMEGA residue-conditioned validation:
+
+```bash
+python open_ended_rsi_omega.py --json
+```
+
+The default paired seeds are `7,11,19`; the default holdout seeds are `23,29`.
+For an explicit CPU-sized run:
+
+```bash
+python open_ended_rsi_omega.py --seeds 7,11,19 --holdout-seeds 23,29 --cycles 2 --generations 5 --train-steps 2 --json
+```
 
 ## Validation
 
@@ -180,6 +229,27 @@ cycle=1 accepted=True champion=cycle1_clean_probe_archive score=0.0805 delta=+0.
 cycle=2 accepted=False champion=cycle1_clean_probe_archive score=0.0805 delta=+0.0553 archive=9 evals=19
 open_ended_proxy_valid: true
 accepted_improvements: 1
+```
+
+AFIRSI-OMEGA residue-conditioned validation on paired seeds `7,11,19` and
+holdout seeds `23,29`:
+
+```text
+omega_validation_valid: true
+accepted_improvements: 1
+accepted candidate: cycle1_residue_pressure_disagreement_9f2fe86984
+paired mean BPC delta: +0.0781
+holdout mean BPC delta: +0.1034
+generated evaluations: 46
+generated archive insertions: 16
+meta-operator policy updates: 12
+source residues used: 22
+```
+
+Boundary:
+
+```text
+This demonstrates residue-conditioned recursive improvement of the EIE/AFIRSI instrument policy across validation cycles. It is not mathematical proof of unbounded open-ended RSI, AGI, or autonomous self-improvement in the real world.
 ```
 
 ## Source Lineage
