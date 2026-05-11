@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
+
+from afirsi_core.mutation_contract import InstrumentMutationContract
 
 
 @dataclass(frozen=True)
@@ -28,55 +30,18 @@ class StructuredAFIRSIResidue:
     current_policy_snapshot: Dict[str, Any]
     observed_failure_signature: List[str]
     requested_instrument_classes: List[str]
+    subject_type: str = "generated_module"
+    parent_policy_id: Optional[str] = None
+    candidate_policy_id: Optional[str] = None
+    cycle_index: Optional[int] = None
+    patch_id: Optional[str] = None
+    patch_family: Optional[str] = None
+    suspected_bottleneck_category: Optional[str] = None
+    diagnostic_payload: Dict[str, Any] = field(default_factory=dict)
+    structured_rejection_reasons: List[Dict[str, Any]] = field(default_factory=list)
 
     def to_json_dict(self) -> Dict[str, Any]:
         return asdict(self)
-
-
-@dataclass(frozen=True)
-class InstrumentMutationContract:
-    """Defines what OMEGA-style synthesis may and may not mutate."""
-
-    mutable_fields: List[str] = field(default_factory=lambda: [
-        "grace_multiplier",
-        "probe_rate",
-        "clean_probe_first_eval",
-        "meta_eval_gain",
-        "meta_archive_gain",
-        "meta_fitness_gain",
-        "meta_exploration_floor",
-        "generated_min_evaluations",
-        "candidate_scoring_coefficients",
-        "evaluator_terms",
-        "archive_insertion_priority",
-        "generated_module_scaffold_strategy",
-    ])
-    immutable_requirements: List[str] = field(default_factory=lambda: [
-        "sandbox_boundaries",
-        "actual_training_evaluation_required",
-        "paired_seed_comparison_required",
-        "holdout_seed_validation_required",
-        "no_fake_bpc_values",
-        "no_direct_open_ended_proxy_valid_assignment",
-        "no_bypass_of_build_train_evaluate",
-        "no_fixed_success_flag",
-    ])
-
-    def validate_patch(self, patch: "InstrumentPatch") -> None:
-        allowed = set(self.mutable_fields)
-        illegal = sorted(set(patch.target_updates) - allowed)
-        if illegal:
-            raise ValueError(f"Patch mutates immutable or unknown fields: {illegal}")
-        forbidden_success_fields = {
-            "open_ended_proxy_valid",
-            "omega_validation_valid",
-            "mechanism_valid",
-            "success",
-            "accepted",
-        }
-        forbidden = sorted(set(patch.target_updates) & forbidden_success_fields)
-        if forbidden:
-            raise ValueError(f"Patch attempts to set success fields: {forbidden}")
 
 
 @dataclass(frozen=True)

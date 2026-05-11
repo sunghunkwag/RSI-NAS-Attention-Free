@@ -37,13 +37,47 @@ class OMEGAInstrumentGenerator:
 
         facts = self._interpret_residues(residues)
         patches: List[InstrumentPatch] = []
+        residue_type_counts = facts["residue_type_counts"]
         if facts["premature_no_eval_count"] > 0:
             patches.append(self._no_eval_patch(
                 residues, facts, parent_config,
                 parent_generated_min_evaluations, cycle, parent_policy_name,
             ))
-        if facts["archive_starvation_count"] > 0:
+        if (
+            facts["archive_starvation_count"] > 0
+            or residue_type_counts.get("ARCHIVE_STAGNATION", 0) > 0
+        ):
             patches.append(self._archive_starvation_patch(
+                residues, facts, parent_config,
+                parent_generated_min_evaluations, cycle, parent_policy_name,
+            ))
+        if residue_type_counts.get("OPERATOR_GENERATOR_MODE_COLLAPSE", 0) > 0:
+            patches.append(self._mode_collapse_patch(
+                residues, facts, parent_config,
+                parent_generated_min_evaluations, cycle, parent_policy_name,
+            ))
+        if residue_type_counts.get("EVALUATOR_NOISE_OR_OVERFIT", 0) > 0:
+            patches.append(self._evaluator_noise_patch(
+                residues, facts, parent_config,
+                parent_generated_min_evaluations, cycle, parent_policy_name,
+            ))
+        if residue_type_counts.get("POLICY_SATURATION", 0) > 0:
+            patches.append(self._policy_saturation_patch(
+                residues, facts, parent_config,
+                parent_generated_min_evaluations, cycle, parent_policy_name,
+            ))
+        if residue_type_counts.get("SCAFFOLD_BIAS", 0) > 0:
+            patches.append(self._scaffold_bias_patch(
+                residues, facts, parent_config,
+                parent_generated_min_evaluations, cycle, parent_policy_name,
+            ))
+        if residue_type_counts.get("META_OPERATOR_IMBALANCE", 0) > 0:
+            patches.append(self._meta_operator_imbalance_patch(
+                residues, facts, parent_config,
+                parent_generated_min_evaluations, cycle, parent_policy_name,
+            ))
+        if residue_type_counts.get("PATCH_EFFECTIVENESS_FAILURE", 0) > 0:
+            patches.append(self._patch_effectiveness_patch(
                 residues, facts, parent_config,
                 parent_generated_min_evaluations, cycle, parent_policy_name,
             ))
@@ -73,6 +107,7 @@ class OMEGAInstrumentGenerator:
         requested = Counter(
             cls for row in rows for cls in row.requested_instrument_classes
         )
+        residue_types = Counter(row.residue_type for row in rows)
         source_kinds = Counter(
             row.source_action.split(":", 1)[0] for row in rows
         )
@@ -99,6 +134,7 @@ class OMEGAInstrumentGenerator:
             "total_residues": len(rows),
             "signature_counts": dict(signatures),
             "requested_instrument_counts": dict(requested),
+            "residue_type_counts": dict(residue_types),
             "source_kind_counts": dict(source_kinds),
             "premature_no_eval_count": len(no_eval),
             "archive_starvation_count": len(archive_starved),
@@ -109,6 +145,9 @@ class OMEGAInstrumentGenerator:
             "mean_archive_insertions": mean(row.archive_insertions for row in rows),
             "max_best_fitness": max(row.best_fitness for row in rows),
             "residue_ids": [row.residue_id for row in rows],
+            "diagnostic_payloads": [
+                getattr(row, "diagnostic_payload", {}) for row in rows
+            ],
         }
 
     def _base_provenance(
@@ -128,6 +167,8 @@ class OMEGAInstrumentGenerator:
             },
             "cycle": cycle,
             "parent_policy_name": parent_policy_name,
+            "patch_family": interpretation,
+            "parent_residue_types": sorted({r.residue_type for r in residues}),
         }
 
     def _patch_id(self, interpretation: str, updates: Dict, residue_ids: List[str]) -> str:
@@ -236,8 +277,13 @@ class OMEGAInstrumentGenerator:
             "clean_probe_first_eval": True,
             "meta_archive_gain": round(max(cfg.meta_archive_gain, 2.0 + pressure), 4),
             "meta_eval_gain": round(max(cfg.meta_eval_gain, 0.25 + 0.05 * pressure), 4),
+            "meta_exploration_floor": round(max(cfg.meta_exploration_floor, 0.35), 4),
             "generated_min_evaluations": max(parent_min_evals + 1, 2),
             "archive_insertion_priority": "raise_starved_generated_modules",
+            "archive_priority_terms": [
+                "novelty_cell_coverage",
+                "underfilled_behavior_cells",
+            ],
         }
         return self._make_patch(
             residues, facts, cycle, parent_policy_name,
@@ -257,6 +303,250 @@ class OMEGAInstrumentGenerator:
             [
                 "Evaluated generated modules that never enter MAP-Elites indicate archive starvation.",
                 "The patch shifts the meta-policy toward archive-producing generation operators.",
+            ],
+        )
+
+    def _mode_collapse_patch(
+        self,
+        residues: List[StructuredAFIRSIResidue],
+        facts: Dict,
+        cfg: EIEConfig,
+        parent_min_evals: int,
+        cycle: int,
+        parent_policy_name: str,
+    ) -> InstrumentPatch:
+        updates = {
+            "meta_exploration_floor": round(max(cfg.meta_exploration_floor, 0.45), 4),
+            "meta_eval_gain": round(max(cfg.meta_eval_gain, 0.25), 4),
+            "candidate_scoring_coefficients": "require_patch_novelty_against_recent_failures",
+            "evaluator_terms": [
+                "patch_equivalence_penalty",
+                "operator_family_diversity",
+            ],
+            "archive_priority_terms": [
+                "alternate_behavior_cells",
+                "novel_operator_family",
+            ],
+            "generated_module_scaffold_strategy": "diversified_patch_family_probe",
+        }
+        return self._make_patch(
+            residues, facts, cycle, parent_policy_name,
+            "operator_generator_mode_collapse_diversify",
+            updates,
+            {
+                "meta_operator_policy_updates": 0.0007,
+                "generated_evaluations": 0.0003,
+            },
+            ["patch_equivalence_penalty", "operator_family_diversity"],
+            "prefer_patch_family_novelty",
+            "diversified_patch_family_probe",
+            [
+                "if repeated equivalent patches fail: mutate a different instrument dimension",
+                "patch novelty must be judged by behavior, not patch id",
+            ],
+            [
+                "Repeated failed patch signatures indicate generator mode collapse.",
+                "The patch raises exploration pressure and adds explicit patch-equivalence terms.",
+            ],
+        )
+
+    def _evaluator_noise_patch(
+        self,
+        residues: List[StructuredAFIRSIResidue],
+        facts: Dict,
+        cfg: EIEConfig,
+        parent_min_evals: int,
+        cycle: int,
+        parent_policy_name: str,
+    ) -> InstrumentPatch:
+        updates = {
+            "meta_exploration_floor": round(max(cfg.meta_exploration_floor, 0.35), 4),
+            "candidate_scoring_coefficients": "holdout_weighted_recursive_score",
+            "evaluator_terms": [
+                "holdout_robustness",
+                "paired_only_improvement_penalty",
+                "seed_stability",
+            ],
+            "archive_priority_terms": ["holdout_consistent_archive_insertions"],
+            "generated_module_scaffold_strategy": "paired_holdout_stability_probe",
+        }
+        return self._make_patch(
+            residues, facts, cycle, parent_policy_name,
+            "evaluator_noise_holdout_stability",
+            updates,
+            {
+                "generated_archive_insertions": 0.0020,
+                "meta_operator_policy_updates": 0.0005,
+            },
+            ["holdout_robustness", "paired_only_improvement_penalty"],
+            "prefer_holdout_stable_generated_modules",
+            "paired_holdout_stability_probe",
+            [
+                "if paired improves but holdout regresses: strengthen holdout terms",
+                "do not accept paired-only improvements as recursive success",
+            ],
+            [
+                "Paired-only gains that fail holdout validation are evaluator noise or overfit.",
+                "The patch biases future candidates toward holdout-stable mechanism activity.",
+            ],
+        )
+
+    def _policy_saturation_patch(
+        self,
+        residues: List[StructuredAFIRSIResidue],
+        facts: Dict,
+        cfg: EIEConfig,
+        parent_min_evals: int,
+        cycle: int,
+        parent_policy_name: str,
+    ) -> InstrumentPatch:
+        updates = {
+            "meta_exploration_floor": round(max(cfg.meta_exploration_floor, 0.40), 4),
+            "candidate_scoring_coefficients": "new_observation_channel_search",
+            "evaluator_terms": [
+                "non_pruning_bottleneck_search",
+                "archive_diversity_gap",
+                "mixed_genome_transfer_gap",
+            ],
+            "archive_priority_terms": [
+                "underexplored_behavior_cells",
+                "operator_family_entropy",
+            ],
+            "generated_module_scaffold_strategy": "discover_next_bottleneck",
+        }
+        return self._make_patch(
+            residues, facts, cycle, parent_policy_name,
+            "policy_saturation_next_bottleneck",
+            updates,
+            {
+                "generated_archive_insertions": 0.0025,
+                "generated_evaluations": 0.0002,
+            },
+            ["non_pruning_bottleneck_search", "archive_diversity_gap"],
+            "prefer_underexplored_behavior_cells",
+            "discover_next_bottleneck",
+            [
+                "if pruning race is no longer informative: search another observation channel",
+                "new terms must still be backed by real execution evidence",
+            ],
+            [
+                "The parent policy has active generated-module evidence but no stronger bottleneck signal.",
+                "The patch shifts from pruning grace to second-order bottleneck discovery.",
+            ],
+        )
+
+    def _scaffold_bias_patch(
+        self,
+        residues: List[StructuredAFIRSIResidue],
+        facts: Dict,
+        cfg: EIEConfig,
+        parent_min_evals: int,
+        cycle: int,
+        parent_policy_name: str,
+    ) -> InstrumentPatch:
+        updates = {
+            "clean_probe_first_eval": False,
+            "probe_rate": round(max(min(cfg.probe_rate, 0.85), 0.65), 4),
+            "meta_archive_gain": round(max(cfg.meta_archive_gain, 2.0), 4),
+            "meta_fitness_gain": round(max(cfg.meta_fitness_gain, 2.0), 4),
+            "candidate_scoring_coefficients": "mixed_genome_transfer_required",
+            "generated_module_scaffold_strategy": "mixed_genome_transfer_probe",
+        }
+        return self._make_patch(
+            residues, facts, cycle, parent_policy_name,
+            "scaffold_bias_mixed_transfer",
+            updates,
+            {
+                "generated_archive_insertions": 0.0025,
+                "eie_wins": 0.0040,
+            },
+            ["mixed_genome_transfer", "clean_probe_bias_penalty"],
+            "prefer_mixed_genome_transfer",
+            "mixed_genome_transfer_probe",
+            [
+                "if clean probe activity fails to transfer: reduce clean-probe-only dependence",
+                "mixed genome candidates must still be trained and evaluated normally",
+            ],
+            [
+                "Clean scaffold activity without parent-relative improvement indicates scaffold bias.",
+                "The patch increases mixed-genome transfer pressure instead of extending grace again.",
+            ],
+        )
+
+    def _meta_operator_imbalance_patch(
+        self,
+        residues: List[StructuredAFIRSIResidue],
+        facts: Dict,
+        cfg: EIEConfig,
+        parent_min_evals: int,
+        cycle: int,
+        parent_policy_name: str,
+    ) -> InstrumentPatch:
+        updates = {
+            "meta_exploration_floor": round(max(cfg.meta_exploration_floor, 0.50), 4),
+            "meta_operator_weighting_coefficients": "balanced_operator_family_floor",
+            "candidate_scoring_coefficients": "operator_entropy_regularized",
+            "evaluator_terms": ["operator_weight_entropy", "exploration_floor"],
+            "archive_priority_terms": ["operator_family_coverage"],
+        }
+        return self._make_patch(
+            residues, facts, cycle, parent_policy_name,
+            "meta_operator_imbalance_rebalance",
+            updates,
+            {
+                "meta_operator_policy_updates": 0.0010,
+                "generated_evaluations": 0.0002,
+            },
+            ["operator_weight_entropy", "exploration_floor"],
+            "prefer_operator_family_coverage",
+            "balanced_operator_family_probe",
+            [
+                "if meta-operator weights collapse: restore an exploration floor",
+                "do not hardcode a winning operator family",
+            ],
+            [
+                "Operator-weight collapse reduces exploration even when generated modules are active.",
+                "The patch restores operator-family coverage pressure.",
+            ],
+        )
+
+    def _patch_effectiveness_patch(
+        self,
+        residues: List[StructuredAFIRSIResidue],
+        facts: Dict,
+        cfg: EIEConfig,
+        parent_min_evals: int,
+        cycle: int,
+        parent_policy_name: str,
+    ) -> InstrumentPatch:
+        updates = {
+            "meta_exploration_floor": round(max(cfg.meta_exploration_floor, 0.35), 4),
+            "candidate_scoring_coefficients": "avoid_failed_causal_signature",
+            "evaluator_terms": [
+                "patch_effectiveness_delta",
+                "mechanism_activity_delta",
+            ],
+            "archive_priority_terms": ["non_repeating_failed_signature"],
+            "generated_module_scaffold_strategy": "alternate_failed_signature_probe",
+        }
+        return self._make_patch(
+            residues, facts, cycle, parent_policy_name,
+            "patch_effectiveness_failure_alternate",
+            updates,
+            {
+                "generated_archive_insertions": 0.0020,
+                "meta_operator_policy_updates": 0.0006,
+            },
+            ["patch_effectiveness_delta", "mechanism_activity_delta"],
+            "avoid_failed_patch_signature",
+            "alternate_failed_signature_probe",
+            [
+                "if a valid patch fails to improve: avoid the same causal signature",
+                "future success must come from real BPC and mechanism deltas",
+            ],
+            [
+                "A contract-valid patch did not improve over its parent.",
+                "The patch asks the generator to move away from the failed signature.",
             ],
         )
 

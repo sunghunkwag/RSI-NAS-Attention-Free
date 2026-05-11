@@ -3,3 +3,4 @@ __pycache__/
 .pytest_cache/
 omega_rsi_report.json
 omega_rsi_stdout.json
+bounded_rsi_report.json

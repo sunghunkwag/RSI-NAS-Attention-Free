@@ -38,14 +38,14 @@ class PolicyCandidate:
 def candidate_score(summary: Dict) -> float:
     if not summary["mechanism_valid"]:
         return -999.0
-    return round(
+    return float(round(
         summary["mean_bpc_delta"]
         + 0.0010 * summary["total_generated_archive_insertions"]
         + 0.0002 * summary["total_generated_evaluations"]
         + 0.0002 * summary["total_meta_operator_policy_updates"]
         + 0.0050 * summary["eie_wins"],
         6,
-    )
+    ))
 
 
 def summarize_candidate(
@@ -222,7 +222,7 @@ def main() -> int:
             for candidate in candidates
         ]
         best_summary = max(candidate_summaries, key=lambda item: item["score"])
-        improved = best_summary["score"] > champion_summary["score"]
+        improved = bool(best_summary["score"] > champion_summary["score"])
         if improved:
             accepted.append(best_summary)
             champion_index = candidate_summaries.index(best_summary)
