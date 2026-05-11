@@ -1,271 +1,146 @@
-# RSI-NAS: Attention-Free Neural Architecture Search with EIE/AFIRSI
+# RSI-NAS with AFIRSI/EIE
 
-This repository implements a recursive self-improvement loop for attention-free
-neural architecture search. The system does not optimize a proxy score only: each
-candidate architecture is built, trained with SGD on character-level language
-modeling, and inserted into a MAP-Elites archive when it improves a behavior
-cell.
+Attention-free neural architecture search with bounded, residue-conditioned
+instrument-policy improvement.
 
-The current implementation extends the original three-layer RSI-NAS system with
-EIE/AFIRSI: Epistemic Instrument Evolution for generated neural modules. This was
-added to address the pruning-propagation race observed in the previous ablation:
-generated modules could be removed before the search loop had enough time to
-sample, train, and archive architectures that used them.
+This repository runs real RSI-NAS executions: candidate architectures are built,
+trained with SGD on character-level language modeling, scored by BPC, and inserted
+into a MAP-Elites archive only through real evaluation evidence.
 
-## Architecture
+## What This Implements
 
-| Layer | Component | Role |
-| --- | --- | --- |
-| 1 | `ModuleRegistry` | Stores primitive and generated attention-free modules with lifecycle evidence |
-| 2 | `ArchitectureGrammar` | Builds and mutates architecture genomes |
-| 3 | `ArchitectureMeta` | Creates new modules through library extraction, composition, and specialization |
-| 3a | `EIEConfig` | Mutable instrument policy optimized by the outer RSI loop |
-| 3b | `omega_adapter` | AFIRSI residue export and OMEGA-style instrument synthesis |
-| 4 | `EpistemicInstrumentEvolver` | Detects instrument failure residue and mutates pruning/probing policy |
-| Archive | `ArchitectureArchive` | MAP-Elites quality-diversity archive over parameter count and depth |
+- Attention-free NAS over NCA, gated shift mixing, fractal GNN, coarse NCA,
+  squeeze-excite, and gated FFN primitives.
+- EIE/AFIRSI instrumentation for generated modules that might otherwise be
+  pruned before enough evidence is collected.
+- A first-class AFIRSI core:
+  `FailureResidueLedger`, `ObservationChannel`, `Evaluator`, `ExperimentUnit`,
+  `OperatorGenerator`, `InstrumentMutationContract`, and
+  `ProblemSpaceVersionGraph`.
+- A bounded recursive policy kernel in `bounded_rsi.py`.
 
-## Attention-Free Primitives
+## Bounded Recursive Loop
 
-All primitives expose a uniform `(B, L, D) -> (B, L, D)` interface and avoid
-attention softmax:
+The bounded kernel executes:
 
-- `NCAStep`: perceive-react-diffuse cellular automaton block
-- `GatedShiftMixer`: fixed-offset gated sequence mixing
-- `FractalGNNBlock`: chunk pooling, graph convolution, and gated broadcast
-- `CoarseNCA`: downsample, coarse NCA update, and upsample
-- `SqueezeExcite`: global channel recalibration
-- `GatedFFN`: SwiGLU-style feed-forward block
+```text
+P0 policy
+-> real RSI-NAS execution
+-> real AFIRSI residues
+-> residue-conditioned patch generation
+-> mutation-contract validation
+-> paired-seed validation
+-> holdout-seed validation
+-> accepted P1
+-> P1 becomes the parent for cycle 2
+-> real execution under P1
+-> P1-derived residues
+-> P2 candidate generation
+-> P2 validation against P1
+```
 
-## Recursive Self-Improvement Loop
+Success is strict:
 
-Each generation performs:
+- `P0 -> accepted P1`: one bounded self-improvement step.
+- `P0 -> accepted P1 -> P2 attempt`: minimal recursive attempt.
+- `P0 -> accepted P1 -> accepted P2`: bounded recursive success.
 
-1. Generate candidate architectures through mutation or crossover.
-2. Optionally instrument candidates with under-tested generated modules when EIE
-   has activated probing.
-3. Train each candidate with SGD and compute bits-per-character.
-4. Insert improvements into the MAP-Elites archive.
-5. Periodically expand the module vocabulary through meta-grammar actions.
-6. Periodically prune generated modules, unless EIE detects insufficient evidence.
+## Second-Order Residues
 
-The EIE/AFIRSI path is not a standalone simulator. It is wired into the actual
-search loop and changes the live instruments used by the loop.
+Beyond `PRUNING_PROPAGATION_RACE`, the kernel now diagnoses:
 
-## EIE/AFIRSI Mechanism
+- `ARCHIVE_STAGNATION`
+- `OPERATOR_GENERATOR_MODE_COLLAPSE`
+- `EVALUATOR_NOISE_OR_OVERFIT`
+- `POLICY_SATURATION`
+- `SCAFFOLD_BIAS`
+- `META_OPERATOR_IMBALANCE`
+- `PATCH_EFFECTIVENESS_FAILURE`
 
-The ChatGPT brainstorming thread produced the key design constraint: real RSI
-must not only generate new candidates, it must also rewrite the instruments that
-observe, judge, and preserve evidence.
+These residues are derived from live execution summaries, validation results,
+generated-module records, archive activity, and policy lineage. They are not
+synthetic success flags.
 
-This implementation turns that idea into code:
+## Latest Default Result
 
-- `GeneratedModuleRecord` tracks birth generation, source action, parents,
-  evaluations, archive insertions, elite usage, best fitness, and pruning
-  attempts.
-- `FailureResidue` records a concrete epistemic failure:
-  `PRUNING_PROPAGATION_RACE`.
-- `EpistemicInstrumentEvolver` mutates `PruningPolicy` when a generated module
-  is about to be pruned before the evidence window is satisfied.
-- The mutated policy applies a grace window of at least `3 * expansion_interval`,
-  requires a minimum generated-module evaluation count, and enables generated
-  module probing.
-- `ArchitectureMeta.instrument_candidate()` injects under-tested generated
-  modules into real candidate genomes so they receive actual SGD evaluation.
-- First evaluations use a clean generated-module probe scaffold, so the system
-  changes the experiment unit instead of only inserting modules into noisy random
-  genomes.
-- `ArchitectureMeta.refresh_meta_operator_policy()` updates the meta-layer's own
-  `library`, `compose`, and `specialize` operator weights from generated-module
-  evaluation and archive evidence.
+Default CPU-sized bounded run:
 
-This creates a closed loop:
+```text
+P1 became parent of cycle 2: true
+P2 came from P1-derived residues: true
+P2 was compared against P1: true
+bounded_recursive_success: true
+partial_recursive_success: false
+accepted_policy_count: 2
+```
 
-`failure residue -> instrument mutation -> changed experiment unit -> real
-evaluation evidence -> meta-operator policy update -> archive or prune decision`.
+Cycle-2 residue distribution:
 
-## Outer Recursive Policy Search
+```text
+ARCHIVE_STAGNATION: 1
+POLICY_SATURATION: 1
+PRUNING_PROPAGATION_RACE: 27
+```
 
-`open_ended_rsi.py` adds an outer loop over the EIE/AFIRSI policy itself. The
-inner RSI loop still performs real architecture search and SGD evaluation. The
-outer loop then mutates the policy that controls pruning grace, probing,
-generated-module experiment scaffolds, and meta-operator evidence weighting.
+Accepted P2 patch family:
 
-The outer loop accepts a policy mutation only when it improves over the previous
-champion on paired seeds and keeps the mechanism active:
+```text
+policy_saturation_next_bottleneck
+```
 
-- generated modules receive real evaluations,
-- generated modules enter the MAP-Elites archive,
-- failure residues trigger instrument mutations,
-- meta-operator weights update from generated-module evidence,
-- mean BPC beats the non-EIE `SELF-MODIFY` baseline,
-- the mutated EIE policy scores above the previous champion policy.
+Rejected P2 candidates were also diagnosed structurally, including
+`SCAFFOLD_BIAS`.
 
-This is a bounded open-ended-RSI proxy: it demonstrates recursive
-self-modification of the RSI instrument policy across validation cycles. It is
-not mathematical proof of unbounded open-ended RSI.
-
-## AFIRSI-OMEGA Integration Prototype
-
-`open_ended_rsi_omega.py` replaces the fixed hand-designed
-`mutate_candidate()` outer loop with a residue-conditioned instrument synthesis
-loop inspired by the OMEGA-THDSE pattern: deterministic symbolic interpretation,
-explicit mutation contracts, and causal provenance.
-
-The integration path is:
-
-`FailureResidue -> StructuredAFIRSIResidue -> missing-instrument constraints ->
-InstrumentPatch -> EIEConfig policy -> paired-seed validation -> holdout-seed
-validation -> accepted parent policy`.
-
-The adapter is intentionally local and does not call external APIs or hidden
-services. It uses OMEGA-style deterministic synthesis rather than importing a
-runtime dependency from the separate `sunghunkwag/OMEGA-THDSE` repository.
-
-The integration layer contains:
-
-- `omega_adapter/schemas.py`: JSON schema for residues, instrument patches, and
-  the mutation contract.
-- `omega_adapter/residue_export.py`: exporter for real residues produced by
-  completed RSI-NAS runs.
-- `omega_adapter/instrument_generator.py`: residue-conditioned OMEGA-style
-  patch generator.
-- `omega_adapter/policy_import.py`: validated conversion from instrument patch
-  to executable `EIEConfig`.
-- `open_ended_rsi_omega.py`: paired-seed plus holdout-seed outer loop with JSON
-  provenance report.
-
-The mutation contract permits EIE policy fields, generated-module evaluation
-budget, candidate scoring coefficients, evaluator terms, archive priority, and
-scaffold strategy. It forbids fake BPC values, direct success flags, bypassing
-real build/train/evaluate, and accepting without paired and holdout validation.
-
-## Usage
+## Run
 
 ```bash
 python rsi_nas.py
-```
-
-Run the controlled ablation:
-
-```bash
-python rsi_nas.py ablation
-```
-
-The ablation now compares:
-
-- `FROZEN`: no design-space expansion
-- `SELF-MODIFY`: baseline meta-grammar expansion without EIE
-- `AFIRSI-EIE`: meta-grammar expansion plus epistemic instrument evolution
-
-Run the focused EIE mechanism validation:
-
-```bash
-python validate_eie.py
-```
-
-This checks a bounded claim only: generated modules that baseline
-self-modification prunes immediately are protected, probed, and evaluated under
-AFIRSI-EIE. It is not a proof of open-ended RSI or consistent BPC improvement.
-
-Run the outer recursive policy-improvement validation:
-
-```bash
-python open_ended_rsi.py
-```
-
-Use `--cycles`, `--seeds`, `--generations`, and `--train-steps` to increase the
-validation budget. The default run is intentionally CPU-sized.
-
-Run the AFIRSI-OMEGA residue-conditioned validation:
-
-```bash
+python validate_eie.py --json
+python open_ended_rsi.py --json
 python open_ended_rsi_omega.py --json
+python bounded_rsi.py --json
 ```
 
-The default paired seeds are `7,11,19`; the default holdout seeds are `23,29`.
-For an explicit CPU-sized run:
+Useful bounded-kernel options:
 
 ```bash
-python open_ended_rsi_omega.py --seeds 7,11,19 --holdout-seeds 23,29 --cycles 2 --generations 5 --train-steps 2 --json
+python bounded_rsi.py \
+  --cycles 2 \
+  --seeds 7,11,19 \
+  --holdout-seeds 23,29 \
+  --generations 5 \
+  --population-size 3 \
+  --train-steps 2 \
+  --json
 ```
 
-## Validation
-
-Run the test suite:
+## Test
 
 ```bash
-python -m pytest test_rsi_nas.py -q
+python -m pytest -q
+python -m compileall afirsi_core
+git diff --check
 ```
 
-The suite covers primitive modules, registry behavior, genome construction,
-network building, SGD fitness evaluation, grammar mutation, meta-grammar
-expansion, MAP-Elites insertion, loop integration, and EIE/AFIRSI behavior.
-
-Current local validation:
+Latest local validation:
 
 ```text
-51 passed
+112 passed
+validate_eie.py --json: mechanism_valid true
+open_ended_rsi.py --json: open_ended_proxy_valid true
+open_ended_rsi_omega.py --json: omega_validation_valid true
+bounded_rsi.py --json: bounded_recursive_success true
 ```
 
-Focused EIE validation on five CPU seeds:
+## Anti-Shortcut Boundary
+
+The implementation forbids fake BPC, fake generated evaluations, fake archive
+insertions, direct success flags, skipped build/train/evaluate, seed-specific
+hardcoding, residue deletion, unvalidated policy acceptance, and accepted
+problem-space versions for rejected patches.
+
+Boundary statement:
 
 ```text
-SELF-MODIFY generated evaluations: 0
-AFIRSI-EIE generated evaluations: 45
-AFIRSI-EIE generated archive insertions: 21
-AFIRSI-EIE meta-operator policy updates: 25
-SELF-MODIFY mean best BPC: 7.6982
-AFIRSI-EIE mean best BPC: 7.6757
-Mean BPC delta (SELF-MODIFY - AFIRSI-EIE): +0.0225
-AFIRSI-EIE seed wins: 3 / 5
-Mechanism valid: true
+This validates a bounded recursive self-improvement kernel over AFIRSI/EIE instrument policy inside RSI-NAS. It is not proof of unbounded open-ended RSI, AGI, ASI, or real-world autonomous self-improvement.
 ```
-
-Outer recursive policy-improvement validation on three CPU seeds:
-
-```text
-cycle=0 accepted=False champion=seed_policy score=0.0757 delta=+0.0555 archive=5 evals=17
-cycle=1 accepted=True champion=cycle1_clean_probe_archive score=0.0805 delta=+0.0553 archive=9 evals=19
-cycle=2 accepted=False champion=cycle1_clean_probe_archive score=0.0805 delta=+0.0553 archive=9 evals=19
-open_ended_proxy_valid: true
-accepted_improvements: 1
-```
-
-AFIRSI-OMEGA residue-conditioned validation on paired seeds `7,11,19` and
-holdout seeds `23,29`:
-
-```text
-omega_validation_valid: true
-accepted_improvements: 1
-accepted candidate: cycle1_residue_pressure_disagreement_9f2fe86984
-paired mean BPC delta: +0.0781
-holdout mean BPC delta: +0.1034
-generated evaluations: 46
-generated archive insertions: 16
-meta-operator policy updates: 12
-source residues used: 22
-```
-
-Boundary:
-
-```text
-This demonstrates residue-conditioned recursive improvement of the EIE/AFIRSI instrument policy across validation cycles. It is not mathematical proof of unbounded open-ended RSI, AGI, or autonomous self-improvement in the real world.
-```
-
-## Source Lineage
-
-| Source | Role |
-| --- | --- |
-| `afn3.py` | GatedShiftMixer, NCAStep, CoarseNCA, SqueezeExcite, GatedFFN lineage |
-| `fractal_gnn.py` | FractalGNNBlock lineage |
-| `nca_lm.py` | PerceptionFilter and ReactionGate lineage |
-| `main.py` | Three-layer RSI framework pattern |
-| ChatGPT RSI/EIE discussion | AFIRSI framing: failure residue drives instrument evolution |
-
-## Next Research Checks
-
-- Run longer GPU ablations with `d_model=64`, `train_steps=200`, 30+ generations,
-  and multiple seeds.
-- Compare `AFIRSI-EIE` against `SELF-MODIFY` and `FROZEN` on final BPC, archive
-  coverage, generated-module survival, and generated-module archive insertions.
-- Add a fixed-budget Transformer baseline with matched parameter counts.
