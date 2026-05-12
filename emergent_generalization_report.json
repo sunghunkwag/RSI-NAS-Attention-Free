@@ -1,0 +1,2125 @@
+{
+  "agi_claim_verified": false,
+  "autonomous_plan_trace": [
+    {
+      "action": "inspect_supplied_real_domains",
+      "evidence": {
+        "task_names": [
+          "breast_cancer_diagnosis",
+          "wine_chemical_origin",
+          "handwritten_digit_recognition"
+        ]
+      },
+      "passed": true,
+      "step_index": 0
+    },
+    {
+      "action": "self_generate_validation_goals_from_residue",
+      "evidence": {
+        "goal_count": 5,
+        "goal_transforms": [
+          "combined_stress",
+          "feature_dropout",
+          "noise"
+        ]
+      },
+      "passed": true,
+      "step_index": 1
+    },
+    {
+      "action": "invent_learner_programs_from_residue",
+      "evidence": {
+        "invented_program_count": 8,
+        "sample_program_ids": [
+          "invented-novel_normalized_knn-80cba5cc69ea88",
+          "invented-novel_normalized_knn-282ccaf87180a6",
+          "invented-robust_quantile_rbf-fbdbdf809491cc",
+          "invented-robust_extra_trees_select-d4d5db38a6efc1",
+          "invented-stress_stable_forest-446d0254d4ebde"
+        ]
+      },
+      "passed": true,
+      "step_index": 2
+    },
+    {
+      "action": "transfer_accepted_programs_across_tasks",
+      "evidence": {
+        "source_tasks": [
+          "breast_cancer_diagnosis",
+          "wine_chemical_origin"
+        ],
+        "transferred_program_count": 3
+      },
+      "passed": true,
+      "step_index": 3
+    },
+    {
+      "action": "discover_unrequested_open_world_domains",
+      "evidence": {
+        "open_world_task_names": [
+          "iris_morphology_species"
+        ],
+        "source": "automatic local sklearn dataset discovery"
+      },
+      "passed": true,
+      "step_index": 4
+    },
+    {
+      "action": "evaluate_heldout_clean_and_stress_splits",
+      "evidence": {
+        "open_world_passed": 1,
+        "open_world_total": 1,
+        "supplied_passed": 3,
+        "supplied_total": 3
+      },
+      "passed": true,
+      "step_index": 5
+    },
+    {
+      "action": "audit_generation_without_test_split",
+      "evidence": {
+        "generation_signal": "train and validation only",
+        "test_signal": "held out until final scoring"
+      },
+      "passed": true,
+      "step_index": 6
+    }
+  ],
+  "cycles": [
+    {
+      "accepted_program_id": "seed_scaled_logistic",
+      "generated_goals": [],
+      "generated_primitive_types": [],
+      "generated_programs": [
+        {
+          "complexity": 5,
+          "estimator_args": {
+            "n_neighbors": 3
+          },
+          "estimator_name": "knn",
+          "feature_steps": [
+            {
+              "args": {},
+              "name": "standard_scale"
+            },
+            {
+              "args": {},
+              "name": "normalize"
+            }
+          ],
+          "generation_created": 0,
+          "invented_by": "residue_conditioned_program_synthesis",
+          "parent_program_ids": [
+            "seed_scaled_logistic"
+          ],
+          "program_id": "invented-novel_normalized_knn-80cba5cc69ea88",
+          "source_residue_ids": [
+            "emergent-residue-715b5f22154258"
+          ],
+          "status": "candidate",
+          "transferred_from_task": null
+        }
+      ],
+      "generation": 0,
+      "instrument_after": {
+        "generation": 1,
+        "goals": [
+          {
+            "generation_created": 0,
+            "goal_id": "goal-clean-validation-seed",
+            "name": "clean_validation",
+            "source_residue_ids": [],
+            "transform": "clean",
+            "weight": 1.0
+          }
+        ],
+        "instrument_id": "emergent-instrument-8c0deb722a2efe",
+        "metric_weights": {
+          "clean_balanced_accuracy": 1.0,
+          "clean_f1_macro": 0.05
+        },
+        "parent_instrument_id": "emergent-instrument-seed",
+        "source_residue_ids": [
+          "emergent-residue-715b5f22154258"
+        ]
+      },
+      "instrument_before": {
+        "generation": 0,
+        "goals": [
+          {
+            "generation_created": 0,
+            "goal_id": "goal-clean-validation-seed",
+            "name": "clean_validation",
+            "source_residue_ids": [],
+            "transform": "clean",
+            "weight": 1.0
+          }
+        ],
+        "instrument_id": "emergent-instrument-seed",
+        "metric_weights": {
+          "clean_balanced_accuracy": 1.0,
+          "clean_f1_macro": 0.05
+        },
+        "parent_instrument_id": null,
+        "source_residue_ids": []
+      },
+      "residues": [
+        {
+          "generation": 0,
+          "missing_evidence": {
+            "missing_search_pressure": "novel learner program around accepted parent",
+            "reason": "continue bounded search even when current diagnostics pass"
+          },
+          "observed_evidence": {
+            "candidate_count": 6,
+            "selected_program": "seed_scaled_logistic"
+          },
+          "proposed_mutation_targets": [
+            "novel_program_mutation"
+          ],
+          "residue_id": "emergent-residue-715b5f22154258",
+          "residue_type": "NOVELTY_PRESSURE",
+          "selected_program_id": "seed_scaled_logistic",
+          "task_name": "breast_cancer_diagnosis"
+        }
+      ],
+      "selected_program_before": "seed_scaled_logistic",
+      "task_name": "breast_cancer_diagnosis"
+    },
+    {
+      "accepted_program_id": "seed_scaled_logistic",
+      "generated_goals": [],
+      "generated_primitive_types": [],
+      "generated_programs": [
+        {
+          "complexity": 5,
+          "estimator_args": {
+            "n_neighbors": 3
+          },
+          "estimator_name": "knn",
+          "feature_steps": [
+            {
+              "args": {},
+              "name": "standard_scale"
+            },
+            {
+              "args": {},
+              "name": "normalize"
+            }
+          ],
+          "generation_created": 1,
+          "invented_by": "residue_conditioned_program_synthesis",
+          "parent_program_ids": [
+            "seed_scaled_logistic"
+          ],
+          "program_id": "invented-novel_normalized_knn-282ccaf87180a6",
+          "source_residue_ids": [
+            "emergent-residue-d91029e990a469"
+          ],
+          "status": "candidate",
+          "transferred_from_task": null
+        }
+      ],
+      "generation": 1,
+      "instrument_after": {
+        "generation": 2,
+        "goals": [
+          {
+            "generation_created": 0,
+            "goal_id": "goal-clean-validation-seed",
+            "name": "clean_validation",
+            "source_residue_ids": [],
+            "transform": "clean",
+            "weight": 1.0
+          }
+        ],
+        "instrument_id": "emergent-instrument-960dac6510a8bd",
+        "metric_weights": {
+          "clean_balanced_accuracy": 1.0,
+          "clean_f1_macro": 0.05
+        },
+        "parent_instrument_id": "emergent-instrument-8c0deb722a2efe",
+        "source_residue_ids": [
+          "emergent-residue-715b5f22154258",
+          "emergent-residue-d91029e990a469"
+        ]
+      },
+      "instrument_before": {
+        "generation": 1,
+        "goals": [
+          {
+            "generation_created": 0,
+            "goal_id": "goal-clean-validation-seed",
+            "name": "clean_validation",
+            "source_residue_ids": [],
+            "transform": "clean",
+            "weight": 1.0
+          }
+        ],
+        "instrument_id": "emergent-instrument-8c0deb722a2efe",
+        "metric_weights": {
+          "clean_balanced_accuracy": 1.0,
+          "clean_f1_macro": 0.05
+        },
+        "parent_instrument_id": "emergent-instrument-seed",
+        "source_residue_ids": [
+          "emergent-residue-715b5f22154258"
+        ]
+      },
+      "residues": [
+        {
+          "generation": 1,
+          "missing_evidence": {
+            "missing_search_pressure": "novel learner program around accepted parent",
+            "reason": "continue bounded search even when current diagnostics pass"
+          },
+          "observed_evidence": {
+            "candidate_count": 7,
+            "selected_program": "seed_scaled_logistic"
+          },
+          "proposed_mutation_targets": [
+            "novel_program_mutation"
+          ],
+          "residue_id": "emergent-residue-d91029e990a469",
+          "residue_type": "NOVELTY_PRESSURE",
+          "selected_program_id": "seed_scaled_logistic",
+          "task_name": "breast_cancer_diagnosis"
+        }
+      ],
+      "selected_program_before": "seed_scaled_logistic",
+      "task_name": "breast_cancer_diagnosis"
+    },
+    {
+      "accepted_program_id": "seed_scaled_rbf_svc",
+      "generated_goals": [
+        {
+          "generation_created": 0,
+          "goal_id": "self-goal-266f97fa5b2b09",
+          "name": "noise_validation_goal",
+          "source_residue_ids": [
+            "emergent-residue-442a051e69188c",
+            "emergent-residue-9698e85287f071"
+          ],
+          "transform": "noise",
+          "weight": 0.22
+        },
+        {
+          "generation_created": 0,
+          "goal_id": "self-goal-65d69bcf7c5b9d",
+          "name": "feature_dropout_validation_goal",
+          "source_residue_ids": [
+            "emergent-residue-442a051e69188c",
+            "emergent-residue-9698e85287f071"
+          ],
+          "transform": "feature_dropout",
+          "weight": 0.18
+        },
+        {
+          "generation_created": 0,
+          "goal_id": "self-goal-c35698d6f1001e",
+          "name": "combined_stress_validation_goal",
+          "source_residue_ids": [
+            "emergent-residue-442a051e69188c",
+            "emergent-residue-9698e85287f071"
+          ],
+          "transform": "combined_stress",
+          "weight": 0.15
+        }
+      ],
+      "generated_primitive_types": [
+        {
+          "created_in_generation": 0,
+          "expression": {
+            "max_pairs": 4,
+            "scale": 0.5
+          },
+          "kind": "residue_interaction",
+          "meta_level": 1,
+          "name": "residue_interaction_features",
+          "parent_symbols": [
+            "feature_step",
+            "stress_goal",
+            "accepted_program"
+          ],
+          "primitive_id": "invented-primitive-c9107be48c21b5",
+          "quality_gate": {
+            "accepted": true,
+            "executes_arbitrary_code": false,
+            "requires_source_residue": true,
+            "semantic_deduplication_key": "primitive-semantics-b5da3c91bbbd2d",
+            "source": "ast-grammar expandable production + primitive-library quality gate"
+          },
+          "source_residue_ids": [
+            "emergent-residue-442a051e69188c",
+            "emergent-residue-9698e85287f071"
+          ]
+        },
+        {
+          "created_in_generation": 0,
+          "expression": {
+            "lower": 3.0,
+            "upper": 97.0
+          },
+          "kind": "residue_robust_clip",
+          "meta_level": 1,
+          "name": "residue_robust_clip",
+          "parent_symbols": [
+            "feature_step",
+            "class_slice_metric"
+          ],
+          "primitive_id": "invented-primitive-584ac4333dfd16",
+          "quality_gate": {
+            "accepted": true,
+            "executes_arbitrary_code": false,
+            "requires_source_residue": true,
+            "semantic_deduplication_key": "primitive-semantics-ee6543f2051683",
+            "source": "ast-grammar expandable production + primitive-library quality gate"
+          },
+          "source_residue_ids": [
+            "emergent-residue-442a051e69188c",
+            "emergent-residue-9698e85287f071"
+          ]
+        }
+      ],
+      "generated_programs": [
+        {
+          "complexity": 6,
+          "estimator_args": {
+            "C": 8.0,
+            "class_weight": "balanced"
+          },
+          "estimator_name": "rbf_svc",
+          "feature_steps": [
+            {
+              "args": {},
+              "name": "quantile_normal"
+            },
+            {
+              "args": {},
+              "name": "pca_95"
+            }
+          ],
+          "generation_created": 0,
+          "invented_by": "residue_conditioned_program_synthesis",
+          "parent_program_ids": [
+            "seed_scaled_linear_svc"
+          ],
+          "program_id": "invented-robust_quantile_rbf-fbdbdf809491cc",
+          "source_residue_ids": [
+            "emergent-residue-442a051e69188c",
+            "emergent-residue-9698e85287f071"
+          ],
+          "status": "candidate",
+          "transferred_from_task": null
+        },
+        {
+          "complexity": 5,
+          "estimator_args": {
+            "class_weight": "balanced",
+            "n_estimators": 220
+          },
+          "estimator_name": "extra_trees",
+          "feature_steps": [
+            {
+              "args": {},
+              "name": "select_75"
+            }
+          ],
+          "generation_created": 0,
+          "invented_by": "residue_conditioned_program_synthesis",
+          "parent_program_ids": [
+            "seed_scaled_linear_svc"
+          ],
+          "program_id": "invented-robust_extra_trees_select-d4d5db38a6efc1",
+          "source_residue_ids": [
+            "emergent-residue-442a051e69188c",
+            "emergent-residue-9698e85287f071"
+          ],
+          "status": "candidate",
+          "transferred_from_task": null
+        },
+        {
+          "complexity": 6,
+          "estimator_args": {
+            "class_weight": "balanced_subsample",
+            "max_features": "sqrt",
+            "n_estimators": 220
+          },
+          "estimator_name": "random_forest",
+          "feature_steps": [
+            {
+              "args": {},
+              "name": "robust_scale"
+            }
+          ],
+          "generation_created": 0,
+          "invented_by": "residue_conditioned_program_synthesis",
+          "parent_program_ids": [
+            "seed_scaled_linear_svc"
+          ],
+          "program_id": "invented-stress_stable_forest-446d0254d4ebde",
+          "source_residue_ids": [
+            "emergent-residue-442a051e69188c",
+            "emergent-residue-9698e85287f071"
+          ],
+          "status": "candidate",
+          "transferred_from_task": null
+        },
+        {
+          "complexity": 5,
+          "estimator_args": {
+            "class_weight": "balanced"
+          },
+          "estimator_name": "linear_svc",
+          "feature_steps": [
+            {
+              "args": {},
+              "name": "invented:invented-primitive-c9107be48c21b5"
+            },
+            {
+              "args": {},
+              "name": "standard_scale"
+            }
+          ],
+          "generation_created": 0,
+          "invented_by": "runtime_primitive_type_synthesis",
+          "parent_program_ids": [
+            "seed_scaled_linear_svc"
+          ],
+          "program_id": "invented-runtime_primitive_interaction_svc-6780492b72d3d3",
+          "source_residue_ids": [
+            "emergent-residue-442a051e69188c",
+            "emergent-residue-9698e85287f071"
+          ],
+          "status": "candidate",
+          "transferred_from_task": null
+        },
+        {
+          "complexity": 5,
+          "estimator_args": {
+            "class_weight": "balanced",
+            "n_estimators": 200
+          },
+          "estimator_name": "extra_trees",
+          "feature_steps": [
+            {
+              "args": {},
+              "name": "invented:invented-primitive-584ac4333dfd16"
+            }
+          ],
+          "generation_created": 0,
+          "invented_by": "runtime_primitive_type_synthesis",
+          "parent_program_ids": [
+            "seed_scaled_linear_svc"
+          ],
+          "program_id": "invented-runtime_primitive_clip_forest-1faed64ef070a3",
+          "source_residue_ids": [
+            "emergent-residue-442a051e69188c",
+            "emergent-residue-9698e85287f071"
+          ],
+          "status": "candidate",
+          "transferred_from_task": null
+        },
+        {
+          "complexity": 4,
+          "estimator_args": {
+            "class_weight": "balanced"
+          },
+          "estimator_name": "logistic",
+          "feature_steps": [
+            {
+              "args": {},
+              "name": "standard_scale"
+            }
+          ],
+          "generation_created": 0,
+          "invented_by": "cross_task_transfer",
+          "parent_program_ids": [
+            "seed_scaled_logistic"
+          ],
+          "program_id": "transfer-program-8aec72789cd892",
+          "source_residue_ids": [],
+          "status": "candidate",
+          "transferred_from_task": "breast_cancer_diagnosis"
+        }
+      ],
+      "generation": 0,
+      "instrument_after": {
+        "generation": 3,
+        "goals": [
+          {
+            "generation_created": 0,
+            "goal_id": "goal-clean-validation-seed",
+            "name": "clean_validation",
+            "source_residue_ids": [],
+            "transform": "clean",
+            "weight": 1.0
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-c35698d6f1001e",
+            "name": "combined_stress_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "combined_stress",
+            "weight": 0.15
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-65d69bcf7c5b9d",
+            "name": "feature_dropout_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "feature_dropout",
+            "weight": 0.18
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-266f97fa5b2b09",
+            "name": "noise_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "noise",
+            "weight": 0.22
+          }
+        ],
+        "instrument_id": "emergent-instrument-47b51a8d9986db",
+        "metric_weights": {
+          "clean_balanced_accuracy": 1.0,
+          "clean_f1_macro": 0.05,
+          "combined_stress_balanced_accuracy": 0.15,
+          "feature_dropout_balanced_accuracy": 0.18,
+          "noise_balanced_accuracy": 0.22,
+          "ranking_stability": 0.12
+        },
+        "parent_instrument_id": "emergent-instrument-960dac6510a8bd",
+        "source_residue_ids": [
+          "emergent-residue-442a051e69188c",
+          "emergent-residue-715b5f22154258",
+          "emergent-residue-9698e85287f071",
+          "emergent-residue-d91029e990a469"
+        ]
+      },
+      "instrument_before": {
+        "generation": 2,
+        "goals": [
+          {
+            "generation_created": 0,
+            "goal_id": "goal-clean-validation-seed",
+            "name": "clean_validation",
+            "source_residue_ids": [],
+            "transform": "clean",
+            "weight": 1.0
+          }
+        ],
+        "instrument_id": "emergent-instrument-960dac6510a8bd",
+        "metric_weights": {
+          "clean_balanced_accuracy": 1.0,
+          "clean_f1_macro": 0.05
+        },
+        "parent_instrument_id": "emergent-instrument-8c0deb722a2efe",
+        "source_residue_ids": [
+          "emergent-residue-715b5f22154258",
+          "emergent-residue-d91029e990a469"
+        ]
+      },
+      "residues": [
+        {
+          "generation": 0,
+          "missing_evidence": {
+            "missing_goal_transforms": [
+              "noise",
+              "feature_dropout"
+            ],
+            "reason": "validation score did not force robustness under generated stress views"
+          },
+          "observed_evidence": {
+            "clean_balanced_accuracy": 1.0,
+            "stress_floor_balanced_accuracy": 0.9761904761904763,
+            "stress_gap": 0.023809523809523725
+          },
+          "proposed_mutation_targets": [
+            "goal_noise",
+            "goal_feature_dropout",
+            "robust_feature_programs"
+          ],
+          "residue_id": "emergent-residue-442a051e69188c",
+          "residue_type": "SELF_GENERATED_STRESS_GOAL_MISSING",
+          "selected_program_id": "seed_scaled_linear_svc",
+          "task_name": "wine_chemical_origin"
+        },
+        {
+          "generation": 0,
+          "missing_evidence": {
+            "missing_search_pressure": "stress-aware learner invention",
+            "reason": "diagnostic stress views prefer a different learner program"
+          },
+          "observed_evidence": {
+            "clean_selected": "seed_scaled_linear_svc",
+            "clean_selected_stress_floor": 0.9761904761904763,
+            "stress_selected": "seed_scaled_rbf_svc",
+            "stress_selected_stress_floor": 1.0
+          },
+          "proposed_mutation_targets": [
+            "ranking_stability",
+            "transfer_robust_parent"
+          ],
+          "residue_id": "emergent-residue-9698e85287f071",
+          "residue_type": "LEARNER_RANKING_DISAGREEMENT",
+          "selected_program_id": "seed_scaled_linear_svc",
+          "task_name": "wine_chemical_origin"
+        }
+      ],
+      "selected_program_before": "seed_scaled_linear_svc",
+      "task_name": "wine_chemical_origin"
+    },
+    {
+      "accepted_program_id": "seed_scaled_rbf_svc",
+      "generated_goals": [],
+      "generated_primitive_types": [],
+      "generated_programs": [
+        {
+          "complexity": 5,
+          "estimator_args": {
+            "n_neighbors": 3
+          },
+          "estimator_name": "knn",
+          "feature_steps": [
+            {
+              "args": {},
+              "name": "standard_scale"
+            },
+            {
+              "args": {},
+              "name": "normalize"
+            }
+          ],
+          "generation_created": 1,
+          "invented_by": "residue_conditioned_program_synthesis",
+          "parent_program_ids": [
+            "seed_scaled_rbf_svc"
+          ],
+          "program_id": "invented-novel_normalized_knn-06c9b0daecf56b",
+          "source_residue_ids": [
+            "emergent-residue-6c0c50b92186ee"
+          ],
+          "status": "candidate",
+          "transferred_from_task": null
+        }
+      ],
+      "generation": 1,
+      "instrument_after": {
+        "generation": 4,
+        "goals": [
+          {
+            "generation_created": 0,
+            "goal_id": "goal-clean-validation-seed",
+            "name": "clean_validation",
+            "source_residue_ids": [],
+            "transform": "clean",
+            "weight": 1.0
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-c35698d6f1001e",
+            "name": "combined_stress_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "combined_stress",
+            "weight": 0.15
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-65d69bcf7c5b9d",
+            "name": "feature_dropout_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "feature_dropout",
+            "weight": 0.18
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-266f97fa5b2b09",
+            "name": "noise_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "noise",
+            "weight": 0.22
+          }
+        ],
+        "instrument_id": "emergent-instrument-7952ed742ee6af",
+        "metric_weights": {
+          "clean_balanced_accuracy": 1.0,
+          "clean_f1_macro": 0.05,
+          "combined_stress_balanced_accuracy": 0.15,
+          "feature_dropout_balanced_accuracy": 0.18,
+          "noise_balanced_accuracy": 0.22,
+          "ranking_stability": 0.12
+        },
+        "parent_instrument_id": "emergent-instrument-47b51a8d9986db",
+        "source_residue_ids": [
+          "emergent-residue-442a051e69188c",
+          "emergent-residue-6c0c50b92186ee",
+          "emergent-residue-715b5f22154258",
+          "emergent-residue-9698e85287f071",
+          "emergent-residue-d91029e990a469"
+        ]
+      },
+      "instrument_before": {
+        "generation": 3,
+        "goals": [
+          {
+            "generation_created": 0,
+            "goal_id": "goal-clean-validation-seed",
+            "name": "clean_validation",
+            "source_residue_ids": [],
+            "transform": "clean",
+            "weight": 1.0
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-c35698d6f1001e",
+            "name": "combined_stress_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "combined_stress",
+            "weight": 0.15
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-65d69bcf7c5b9d",
+            "name": "feature_dropout_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "feature_dropout",
+            "weight": 0.18
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-266f97fa5b2b09",
+            "name": "noise_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "noise",
+            "weight": 0.22
+          }
+        ],
+        "instrument_id": "emergent-instrument-47b51a8d9986db",
+        "metric_weights": {
+          "clean_balanced_accuracy": 1.0,
+          "clean_f1_macro": 0.05,
+          "combined_stress_balanced_accuracy": 0.15,
+          "feature_dropout_balanced_accuracy": 0.18,
+          "noise_balanced_accuracy": 0.22,
+          "ranking_stability": 0.12
+        },
+        "parent_instrument_id": "emergent-instrument-960dac6510a8bd",
+        "source_residue_ids": [
+          "emergent-residue-442a051e69188c",
+          "emergent-residue-715b5f22154258",
+          "emergent-residue-9698e85287f071",
+          "emergent-residue-d91029e990a469"
+        ]
+      },
+      "residues": [
+        {
+          "generation": 1,
+          "missing_evidence": {
+            "missing_search_pressure": "novel learner program around accepted parent",
+            "reason": "continue bounded search even when current diagnostics pass"
+          },
+          "observed_evidence": {
+            "candidate_count": 14,
+            "selected_program": "seed_scaled_rbf_svc"
+          },
+          "proposed_mutation_targets": [
+            "novel_program_mutation"
+          ],
+          "residue_id": "emergent-residue-6c0c50b92186ee",
+          "residue_type": "NOVELTY_PRESSURE",
+          "selected_program_id": "seed_scaled_rbf_svc",
+          "task_name": "wine_chemical_origin"
+        }
+      ],
+      "selected_program_before": "seed_scaled_rbf_svc",
+      "task_name": "wine_chemical_origin"
+    },
+    {
+      "accepted_program_id": "seed_extra_trees",
+      "generated_goals": [
+        {
+          "generation_created": 0,
+          "goal_id": "self-goal-f1a581bfca772b",
+          "name": "combined_stress_validation_goal",
+          "source_residue_ids": [
+            "emergent-residue-1abfdf21ae070e"
+          ],
+          "transform": "combined_stress",
+          "weight": 0.15
+        }
+      ],
+      "generated_primitive_types": [
+        {
+          "created_in_generation": 0,
+          "expression": {
+            "max_pairs": 4,
+            "scale": 0.5
+          },
+          "kind": "residue_interaction",
+          "meta_level": 1,
+          "name": "residue_interaction_features",
+          "parent_symbols": [
+            "feature_step",
+            "stress_goal",
+            "accepted_program"
+          ],
+          "primitive_id": "invented-primitive-b258fa72dad039",
+          "quality_gate": {
+            "accepted": true,
+            "executes_arbitrary_code": false,
+            "requires_source_residue": true,
+            "semantic_deduplication_key": "primitive-semantics-b5da3c91bbbd2d",
+            "source": "ast-grammar expandable production + primitive-library quality gate"
+          },
+          "source_residue_ids": [
+            "emergent-residue-1abfdf21ae070e"
+          ]
+        }
+      ],
+      "generated_programs": [
+        {
+          "complexity": 6,
+          "estimator_args": {
+            "class_weight": "balanced_subsample",
+            "max_features": "sqrt",
+            "n_estimators": 220
+          },
+          "estimator_name": "random_forest",
+          "feature_steps": [
+            {
+              "args": {},
+              "name": "robust_scale"
+            }
+          ],
+          "generation_created": 0,
+          "invented_by": "residue_conditioned_program_synthesis",
+          "parent_program_ids": [
+            "seed_extra_trees"
+          ],
+          "program_id": "invented-stress_stable_forest-37f1451654fbe2",
+          "source_residue_ids": [
+            "emergent-residue-1abfdf21ae070e"
+          ],
+          "status": "candidate",
+          "transferred_from_task": null
+        },
+        {
+          "complexity": 5,
+          "estimator_args": {
+            "class_weight": "balanced"
+          },
+          "estimator_name": "linear_svc",
+          "feature_steps": [
+            {
+              "args": {},
+              "name": "invented:invented-primitive-b258fa72dad039"
+            },
+            {
+              "args": {},
+              "name": "standard_scale"
+            }
+          ],
+          "generation_created": 0,
+          "invented_by": "runtime_primitive_type_synthesis",
+          "parent_program_ids": [
+            "seed_extra_trees"
+          ],
+          "program_id": "invented-runtime_primitive_interaction_svc-0923ea71e9137d",
+          "source_residue_ids": [
+            "emergent-residue-1abfdf21ae070e"
+          ],
+          "status": "candidate",
+          "transferred_from_task": null
+        },
+        {
+          "complexity": 4,
+          "estimator_args": {
+            "class_weight": "balanced"
+          },
+          "estimator_name": "logistic",
+          "feature_steps": [
+            {
+              "args": {},
+              "name": "standard_scale"
+            }
+          ],
+          "generation_created": 0,
+          "invented_by": "cross_task_transfer",
+          "parent_program_ids": [
+            "seed_scaled_logistic"
+          ],
+          "program_id": "transfer-program-f135d9f7c11557",
+          "source_residue_ids": [],
+          "status": "candidate",
+          "transferred_from_task": "breast_cancer_diagnosis"
+        },
+        {
+          "complexity": 5,
+          "estimator_args": {
+            "C": 10.0,
+            "class_weight": "balanced"
+          },
+          "estimator_name": "rbf_svc",
+          "feature_steps": [
+            {
+              "args": {},
+              "name": "standard_scale"
+            }
+          ],
+          "generation_created": 0,
+          "invented_by": "cross_task_transfer",
+          "parent_program_ids": [
+            "seed_scaled_rbf_svc"
+          ],
+          "program_id": "transfer-program-6bd9cac0e876ca",
+          "source_residue_ids": [],
+          "status": "candidate",
+          "transferred_from_task": "wine_chemical_origin"
+        }
+      ],
+      "generation": 0,
+      "instrument_after": {
+        "generation": 5,
+        "goals": [
+          {
+            "generation_created": 0,
+            "goal_id": "goal-clean-validation-seed",
+            "name": "clean_validation",
+            "source_residue_ids": [],
+            "transform": "clean",
+            "weight": 1.0
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-f1a581bfca772b",
+            "name": "combined_stress_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-1abfdf21ae070e"
+            ],
+            "transform": "combined_stress",
+            "weight": 0.15
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-65d69bcf7c5b9d",
+            "name": "feature_dropout_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "feature_dropout",
+            "weight": 0.18
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-266f97fa5b2b09",
+            "name": "noise_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "noise",
+            "weight": 0.22
+          }
+        ],
+        "instrument_id": "emergent-instrument-03e2b84f38ed14",
+        "metric_weights": {
+          "clean_balanced_accuracy": 1.0,
+          "clean_f1_macro": 0.05,
+          "combined_stress_balanced_accuracy": 0.15,
+          "feature_dropout_balanced_accuracy": 0.18,
+          "noise_balanced_accuracy": 0.22,
+          "ranking_stability": 0.12
+        },
+        "parent_instrument_id": "emergent-instrument-7952ed742ee6af",
+        "source_residue_ids": [
+          "emergent-residue-1abfdf21ae070e",
+          "emergent-residue-442a051e69188c",
+          "emergent-residue-6c0c50b92186ee",
+          "emergent-residue-715b5f22154258",
+          "emergent-residue-9698e85287f071",
+          "emergent-residue-d91029e990a469"
+        ]
+      },
+      "instrument_before": {
+        "generation": 4,
+        "goals": [
+          {
+            "generation_created": 0,
+            "goal_id": "goal-clean-validation-seed",
+            "name": "clean_validation",
+            "source_residue_ids": [],
+            "transform": "clean",
+            "weight": 1.0
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-c35698d6f1001e",
+            "name": "combined_stress_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "combined_stress",
+            "weight": 0.15
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-65d69bcf7c5b9d",
+            "name": "feature_dropout_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "feature_dropout",
+            "weight": 0.18
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-266f97fa5b2b09",
+            "name": "noise_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "noise",
+            "weight": 0.22
+          }
+        ],
+        "instrument_id": "emergent-instrument-7952ed742ee6af",
+        "metric_weights": {
+          "clean_balanced_accuracy": 1.0,
+          "clean_f1_macro": 0.05,
+          "combined_stress_balanced_accuracy": 0.15,
+          "feature_dropout_balanced_accuracy": 0.18,
+          "noise_balanced_accuracy": 0.22,
+          "ranking_stability": 0.12
+        },
+        "parent_instrument_id": "emergent-instrument-47b51a8d9986db",
+        "source_residue_ids": [
+          "emergent-residue-442a051e69188c",
+          "emergent-residue-6c0c50b92186ee",
+          "emergent-residue-715b5f22154258",
+          "emergent-residue-9698e85287f071",
+          "emergent-residue-d91029e990a469"
+        ]
+      },
+      "residues": [
+        {
+          "generation": 0,
+          "missing_evidence": {
+            "missing_search_pressure": "stress-aware learner invention",
+            "reason": "diagnostic stress views prefer a different learner program"
+          },
+          "observed_evidence": {
+            "clean_selected": "seed_extra_trees",
+            "clean_selected_stress_floor": 0.9638095238095238,
+            "stress_selected": "seed_scaled_rbf_svc",
+            "stress_selected_stress_floor": 0.9694444444444444
+          },
+          "proposed_mutation_targets": [
+            "ranking_stability",
+            "transfer_robust_parent"
+          ],
+          "residue_id": "emergent-residue-1abfdf21ae070e",
+          "residue_type": "LEARNER_RANKING_DISAGREEMENT",
+          "selected_program_id": "seed_extra_trees",
+          "task_name": "handwritten_digit_recognition"
+        }
+      ],
+      "selected_program_before": "seed_extra_trees",
+      "task_name": "handwritten_digit_recognition"
+    },
+    {
+      "accepted_program_id": "seed_extra_trees",
+      "generated_goals": [
+        {
+          "generation_created": 1,
+          "goal_id": "self-goal-286cf47b1470e0",
+          "name": "combined_stress_validation_goal",
+          "source_residue_ids": [
+            "emergent-residue-482c3b2e8cdc10"
+          ],
+          "transform": "combined_stress",
+          "weight": 0.15
+        }
+      ],
+      "generated_primitive_types": [
+        {
+          "created_in_generation": 1,
+          "expression": {
+            "max_pairs": 4,
+            "scale": 0.5
+          },
+          "kind": "residue_interaction",
+          "meta_level": 1,
+          "name": "residue_interaction_features",
+          "parent_symbols": [
+            "feature_step",
+            "stress_goal",
+            "accepted_program"
+          ],
+          "primitive_id": "invented-primitive-a70a0112777d33",
+          "quality_gate": {
+            "accepted": true,
+            "executes_arbitrary_code": false,
+            "requires_source_residue": true,
+            "semantic_deduplication_key": "primitive-semantics-b5da3c91bbbd2d",
+            "source": "ast-grammar expandable production + primitive-library quality gate"
+          },
+          "source_residue_ids": [
+            "emergent-residue-482c3b2e8cdc10"
+          ]
+        }
+      ],
+      "generated_programs": [
+        {
+          "complexity": 6,
+          "estimator_args": {
+            "class_weight": "balanced_subsample",
+            "max_features": "sqrt",
+            "n_estimators": 220
+          },
+          "estimator_name": "random_forest",
+          "feature_steps": [
+            {
+              "args": {},
+              "name": "robust_scale"
+            }
+          ],
+          "generation_created": 1,
+          "invented_by": "residue_conditioned_program_synthesis",
+          "parent_program_ids": [
+            "seed_extra_trees"
+          ],
+          "program_id": "invented-stress_stable_forest-42ada6d9857f63",
+          "source_residue_ids": [
+            "emergent-residue-482c3b2e8cdc10"
+          ],
+          "status": "candidate",
+          "transferred_from_task": null
+        },
+        {
+          "complexity": 5,
+          "estimator_args": {
+            "class_weight": "balanced"
+          },
+          "estimator_name": "linear_svc",
+          "feature_steps": [
+            {
+              "args": {},
+              "name": "invented:invented-primitive-a70a0112777d33"
+            },
+            {
+              "args": {},
+              "name": "standard_scale"
+            }
+          ],
+          "generation_created": 1,
+          "invented_by": "runtime_primitive_type_synthesis",
+          "parent_program_ids": [
+            "seed_extra_trees"
+          ],
+          "program_id": "invented-runtime_primitive_interaction_svc-42d62af7aea750",
+          "source_residue_ids": [
+            "emergent-residue-482c3b2e8cdc10"
+          ],
+          "status": "candidate",
+          "transferred_from_task": null
+        }
+      ],
+      "generation": 1,
+      "instrument_after": {
+        "generation": 6,
+        "goals": [
+          {
+            "generation_created": 0,
+            "goal_id": "goal-clean-validation-seed",
+            "name": "clean_validation",
+            "source_residue_ids": [],
+            "transform": "clean",
+            "weight": 1.0
+          },
+          {
+            "generation_created": 1,
+            "goal_id": "self-goal-286cf47b1470e0",
+            "name": "combined_stress_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-482c3b2e8cdc10"
+            ],
+            "transform": "combined_stress",
+            "weight": 0.15
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-65d69bcf7c5b9d",
+            "name": "feature_dropout_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "feature_dropout",
+            "weight": 0.18
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-266f97fa5b2b09",
+            "name": "noise_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "noise",
+            "weight": 0.22
+          }
+        ],
+        "instrument_id": "emergent-instrument-8bcae2f380151c",
+        "metric_weights": {
+          "clean_balanced_accuracy": 1.0,
+          "clean_f1_macro": 0.05,
+          "combined_stress_balanced_accuracy": 0.15,
+          "feature_dropout_balanced_accuracy": 0.18,
+          "noise_balanced_accuracy": 0.22,
+          "ranking_stability": 0.12
+        },
+        "parent_instrument_id": "emergent-instrument-03e2b84f38ed14",
+        "source_residue_ids": [
+          "emergent-residue-1abfdf21ae070e",
+          "emergent-residue-442a051e69188c",
+          "emergent-residue-482c3b2e8cdc10",
+          "emergent-residue-6c0c50b92186ee",
+          "emergent-residue-715b5f22154258",
+          "emergent-residue-9698e85287f071",
+          "emergent-residue-d91029e990a469"
+        ]
+      },
+      "instrument_before": {
+        "generation": 5,
+        "goals": [
+          {
+            "generation_created": 0,
+            "goal_id": "goal-clean-validation-seed",
+            "name": "clean_validation",
+            "source_residue_ids": [],
+            "transform": "clean",
+            "weight": 1.0
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-f1a581bfca772b",
+            "name": "combined_stress_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-1abfdf21ae070e"
+            ],
+            "transform": "combined_stress",
+            "weight": 0.15
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-65d69bcf7c5b9d",
+            "name": "feature_dropout_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "feature_dropout",
+            "weight": 0.18
+          },
+          {
+            "generation_created": 0,
+            "goal_id": "self-goal-266f97fa5b2b09",
+            "name": "noise_validation_goal",
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ],
+            "transform": "noise",
+            "weight": 0.22
+          }
+        ],
+        "instrument_id": "emergent-instrument-03e2b84f38ed14",
+        "metric_weights": {
+          "clean_balanced_accuracy": 1.0,
+          "clean_f1_macro": 0.05,
+          "combined_stress_balanced_accuracy": 0.15,
+          "feature_dropout_balanced_accuracy": 0.18,
+          "noise_balanced_accuracy": 0.22,
+          "ranking_stability": 0.12
+        },
+        "parent_instrument_id": "emergent-instrument-7952ed742ee6af",
+        "source_residue_ids": [
+          "emergent-residue-1abfdf21ae070e",
+          "emergent-residue-442a051e69188c",
+          "emergent-residue-6c0c50b92186ee",
+          "emergent-residue-715b5f22154258",
+          "emergent-residue-9698e85287f071",
+          "emergent-residue-d91029e990a469"
+        ]
+      },
+      "residues": [
+        {
+          "generation": 1,
+          "missing_evidence": {
+            "missing_search_pressure": "stress-aware learner invention",
+            "reason": "diagnostic stress views prefer a different learner program"
+          },
+          "observed_evidence": {
+            "clean_selected": "seed_extra_trees",
+            "clean_selected_stress_floor": 0.9638095238095238,
+            "stress_selected": "seed_scaled_rbf_svc",
+            "stress_selected_stress_floor": 0.9694444444444444
+          },
+          "proposed_mutation_targets": [
+            "ranking_stability",
+            "transfer_robust_parent"
+          ],
+          "residue_id": "emergent-residue-482c3b2e8cdc10",
+          "residue_type": "LEARNER_RANKING_DISAGREEMENT",
+          "selected_program_id": "seed_extra_trees",
+          "task_name": "handwritten_digit_recognition"
+        }
+      ],
+      "selected_program_before": "seed_extra_trees",
+      "task_name": "handwritten_digit_recognition"
+    }
+  ],
+  "failure_reasons": [
+    "independent ARC-AGI, GAIA, SWE-bench, or METR-style external evaluation has not been run or passed"
+  ],
+  "final_instrument": {
+    "generation": 6,
+    "goals": [
+      {
+        "generation_created": 0,
+        "goal_id": "goal-clean-validation-seed",
+        "name": "clean_validation",
+        "source_residue_ids": [],
+        "transform": "clean",
+        "weight": 1.0
+      },
+      {
+        "generation_created": 1,
+        "goal_id": "self-goal-286cf47b1470e0",
+        "name": "combined_stress_validation_goal",
+        "source_residue_ids": [
+          "emergent-residue-482c3b2e8cdc10"
+        ],
+        "transform": "combined_stress",
+        "weight": 0.15
+      },
+      {
+        "generation_created": 0,
+        "goal_id": "self-goal-65d69bcf7c5b9d",
+        "name": "feature_dropout_validation_goal",
+        "source_residue_ids": [
+          "emergent-residue-442a051e69188c",
+          "emergent-residue-9698e85287f071"
+        ],
+        "transform": "feature_dropout",
+        "weight": 0.18
+      },
+      {
+        "generation_created": 0,
+        "goal_id": "self-goal-266f97fa5b2b09",
+        "name": "noise_validation_goal",
+        "source_residue_ids": [
+          "emergent-residue-442a051e69188c",
+          "emergent-residue-9698e85287f071"
+        ],
+        "transform": "noise",
+        "weight": 0.22
+      }
+    ],
+    "instrument_id": "emergent-instrument-8bcae2f380151c",
+    "metric_weights": {
+      "clean_balanced_accuracy": 1.0,
+      "clean_f1_macro": 0.05,
+      "combined_stress_balanced_accuracy": 0.15,
+      "feature_dropout_balanced_accuracy": 0.18,
+      "noise_balanced_accuracy": 0.22,
+      "ranking_stability": 0.12
+    },
+    "parent_instrument_id": "emergent-instrument-03e2b84f38ed14",
+    "source_residue_ids": [
+      "emergent-residue-1abfdf21ae070e",
+      "emergent-residue-442a051e69188c",
+      "emergent-residue-482c3b2e8cdc10",
+      "emergent-residue-6c0c50b92186ee",
+      "emergent-residue-715b5f22154258",
+      "emergent-residue-9698e85287f071",
+      "emergent-residue-d91029e990a469"
+    ]
+  },
+  "final_verdict": "EMERGENT_GENERALIZATION_MECHANISMS_PASSED_LOCAL_GATES",
+  "gates": [
+    {
+      "evidence": {
+        "goal_count": 5,
+        "goal_transforms": [
+          "combined_stress",
+          "feature_dropout",
+          "noise"
+        ]
+      },
+      "name": "self_generated_validation_goals",
+      "passed": true,
+      "score": 5.0
+    },
+    {
+      "evidence": {
+        "invented_program_count": 8,
+        "invented_programs": [
+          "invented-novel_normalized_knn-80cba5cc69ea88",
+          "invented-novel_normalized_knn-282ccaf87180a6",
+          "invented-robust_quantile_rbf-fbdbdf809491cc",
+          "invented-robust_extra_trees_select-d4d5db38a6efc1",
+          "invented-stress_stable_forest-446d0254d4ebde",
+          "invented-novel_normalized_knn-06c9b0daecf56b",
+          "invented-stress_stable_forest-37f1451654fbe2",
+          "invented-stress_stable_forest-42ada6d9857f63"
+        ]
+      },
+      "name": "residue_conditioned_learner_program_invention",
+      "passed": true,
+      "score": 8.0
+    },
+    {
+      "evidence": {
+        "source_tasks": [
+          "breast_cancer_diagnosis",
+          "wine_chemical_origin"
+        ],
+        "transferred_program_count": 3
+      },
+      "name": "cross_task_program_transfer",
+      "passed": true,
+      "score": 3.0
+    },
+    {
+      "evidence": {
+        "average_stress_floor_balanced_accuracy": 0.9561841005527543,
+        "open_world_tasks": [
+          "iris_morphology_species"
+        ],
+        "passed": 4,
+        "total": 4
+      },
+      "name": "heldout_real_data_and_stress_success",
+      "passed": true,
+      "score": 0.9775183073438888
+    },
+    {
+      "evidence": {
+        "generation_signal": "train and validation splits only",
+        "test_signal": "held-out after learner and instrument evolution"
+      },
+      "name": "test_split_not_used_for_generation",
+      "passed": true,
+      "score": 1.0
+    },
+    {
+      "evidence": {
+        "observed": "unrequested real-data domains were discovered locally, scored with the evolved instrument, and tested on held-out splits",
+        "open_world_task_results": [
+          {
+            "clean_test_balanced_accuracy": 0.9666666666666667,
+            "domain": "open_world_botanical_measurements",
+            "passed": true,
+            "stress_floor_balanced_accuracy": 0.9,
+            "task_name": "iris_morphology_species"
+          }
+        ]
+      },
+      "name": "unbounded_open_world_domain_creation",
+      "passed": true,
+      "score": 0.9666666666666667
+    },
+    {
+      "evidence": {
+        "expected_actions": [
+          "inspect_supplied_real_domains",
+          "self_generate_validation_goals_from_residue",
+          "invent_learner_programs_from_residue",
+          "transfer_accepted_programs_across_tasks",
+          "discover_unrequested_open_world_domains",
+          "evaluate_heldout_clean_and_stress_splits",
+          "audit_generation_without_test_split"
+        ],
+        "observed": "multi-step autonomous local plan completed with per-step verification",
+        "observed_actions": [
+          "inspect_supplied_real_domains",
+          "self_generate_validation_goals_from_residue",
+          "invent_learner_programs_from_residue",
+          "transfer_accepted_programs_across_tasks",
+          "discover_unrequested_open_world_domains",
+          "evaluate_heldout_clean_and_stress_splits",
+          "audit_generation_without_test_split"
+        ],
+        "trace": [
+          {
+            "action": "inspect_supplied_real_domains",
+            "evidence": {
+              "task_names": [
+                "breast_cancer_diagnosis",
+                "wine_chemical_origin",
+                "handwritten_digit_recognition"
+              ]
+            },
+            "passed": true,
+            "step_index": 0
+          },
+          {
+            "action": "self_generate_validation_goals_from_residue",
+            "evidence": {
+              "goal_count": 5,
+              "goal_transforms": [
+                "combined_stress",
+                "feature_dropout",
+                "noise"
+              ]
+            },
+            "passed": true,
+            "step_index": 1
+          },
+          {
+            "action": "invent_learner_programs_from_residue",
+            "evidence": {
+              "invented_program_count": 8,
+              "sample_program_ids": [
+                "invented-novel_normalized_knn-80cba5cc69ea88",
+                "invented-novel_normalized_knn-282ccaf87180a6",
+                "invented-robust_quantile_rbf-fbdbdf809491cc",
+                "invented-robust_extra_trees_select-d4d5db38a6efc1",
+                "invented-stress_stable_forest-446d0254d4ebde"
+              ]
+            },
+            "passed": true,
+            "step_index": 2
+          },
+          {
+            "action": "transfer_accepted_programs_across_tasks",
+            "evidence": {
+              "source_tasks": [
+                "breast_cancer_diagnosis",
+                "wine_chemical_origin"
+              ],
+              "transferred_program_count": 3
+            },
+            "passed": true,
+            "step_index": 3
+          },
+          {
+            "action": "discover_unrequested_open_world_domains",
+            "evidence": {
+              "open_world_task_names": [
+                "iris_morphology_species"
+              ],
+              "source": "automatic local sklearn dataset discovery"
+            },
+            "passed": true,
+            "step_index": 4
+          },
+          {
+            "action": "evaluate_heldout_clean_and_stress_splits",
+            "evidence": {
+              "open_world_passed": 1,
+              "open_world_total": 1,
+              "supplied_passed": 3,
+              "supplied_total": 3
+            },
+            "passed": true,
+            "step_index": 5
+          },
+          {
+            "action": "audit_generation_without_test_split",
+            "evidence": {
+              "generation_signal": "train and validation only",
+              "test_signal": "held out until final scoring"
+            },
+            "passed": true,
+            "step_index": 6
+          }
+        ]
+      },
+      "name": "autonomous_long_horizon_tool_use",
+      "passed": true,
+      "score": 7.0
+    },
+    {
+      "evidence": {
+        "observed": "runtime primitive-type registry expanded from residue using an expandable grammar plus quality gate",
+        "primitive_type_count": 4,
+        "primitive_types": [
+          {
+            "created_in_generation": 0,
+            "expression": {
+              "max_pairs": 4,
+              "scale": 0.5
+            },
+            "kind": "residue_interaction",
+            "meta_level": 1,
+            "name": "residue_interaction_features",
+            "parent_symbols": [
+              "feature_step",
+              "stress_goal",
+              "accepted_program"
+            ],
+            "primitive_id": "invented-primitive-c9107be48c21b5",
+            "quality_gate": {
+              "accepted": true,
+              "executes_arbitrary_code": false,
+              "requires_source_residue": true,
+              "semantic_deduplication_key": "primitive-semantics-b5da3c91bbbd2d",
+              "source": "ast-grammar expandable production + primitive-library quality gate"
+            },
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ]
+          },
+          {
+            "created_in_generation": 0,
+            "expression": {
+              "lower": 3.0,
+              "upper": 97.0
+            },
+            "kind": "residue_robust_clip",
+            "meta_level": 1,
+            "name": "residue_robust_clip",
+            "parent_symbols": [
+              "feature_step",
+              "class_slice_metric"
+            ],
+            "primitive_id": "invented-primitive-584ac4333dfd16",
+            "quality_gate": {
+              "accepted": true,
+              "executes_arbitrary_code": false,
+              "requires_source_residue": true,
+              "semantic_deduplication_key": "primitive-semantics-ee6543f2051683",
+              "source": "ast-grammar expandable production + primitive-library quality gate"
+            },
+            "source_residue_ids": [
+              "emergent-residue-442a051e69188c",
+              "emergent-residue-9698e85287f071"
+            ]
+          },
+          {
+            "created_in_generation": 0,
+            "expression": {
+              "max_pairs": 4,
+              "scale": 0.5
+            },
+            "kind": "residue_interaction",
+            "meta_level": 1,
+            "name": "residue_interaction_features",
+            "parent_symbols": [
+              "feature_step",
+              "stress_goal",
+              "accepted_program"
+            ],
+            "primitive_id": "invented-primitive-b258fa72dad039",
+            "quality_gate": {
+              "accepted": true,
+              "executes_arbitrary_code": false,
+              "requires_source_residue": true,
+              "semantic_deduplication_key": "primitive-semantics-b5da3c91bbbd2d",
+              "source": "ast-grammar expandable production + primitive-library quality gate"
+            },
+            "source_residue_ids": [
+              "emergent-residue-1abfdf21ae070e"
+            ]
+          },
+          {
+            "created_in_generation": 1,
+            "expression": {
+              "max_pairs": 4,
+              "scale": 0.5
+            },
+            "kind": "residue_interaction",
+            "meta_level": 1,
+            "name": "residue_interaction_features",
+            "parent_symbols": [
+              "feature_step",
+              "stress_goal",
+              "accepted_program"
+            ],
+            "primitive_id": "invented-primitive-a70a0112777d33",
+            "quality_gate": {
+              "accepted": true,
+              "executes_arbitrary_code": false,
+              "requires_source_residue": true,
+              "semantic_deduplication_key": "primitive-semantics-b5da3c91bbbd2d",
+              "source": "ast-grammar expandable production + primitive-library quality gate"
+            },
+            "source_residue_ids": [
+              "emergent-residue-482c3b2e8cdc10"
+            ]
+          }
+        ]
+      },
+      "name": "recursive_capability_improvement_without_manual_primitives",
+      "passed": true,
+      "score": 4.0
+    },
+    {
+      "evidence": {
+        "missing": "independent ARC-AGI, GAIA, SWE-bench, or METR-style external evaluation has not been run or passed",
+        "observed": "all local emergent generalization gates now have executable evidence"
+      },
+      "name": "external_frontier_benchmark_validation",
+      "passed": false,
+      "score": 0.0
+    }
+  ],
+  "invented_primitive_type_count": 4,
+  "invented_primitive_types": [
+    {
+      "created_in_generation": 0,
+      "expression": {
+        "max_pairs": 4,
+        "scale": 0.5
+      },
+      "kind": "residue_interaction",
+      "meta_level": 1,
+      "name": "residue_interaction_features",
+      "parent_symbols": [
+        "feature_step",
+        "stress_goal",
+        "accepted_program"
+      ],
+      "primitive_id": "invented-primitive-c9107be48c21b5",
+      "quality_gate": {
+        "accepted": true,
+        "executes_arbitrary_code": false,
+        "requires_source_residue": true,
+        "semantic_deduplication_key": "primitive-semantics-b5da3c91bbbd2d",
+        "source": "ast-grammar expandable production + primitive-library quality gate"
+      },
+      "source_residue_ids": [
+        "emergent-residue-442a051e69188c",
+        "emergent-residue-9698e85287f071"
+      ]
+    },
+    {
+      "created_in_generation": 0,
+      "expression": {
+        "lower": 3.0,
+        "upper": 97.0
+      },
+      "kind": "residue_robust_clip",
+      "meta_level": 1,
+      "name": "residue_robust_clip",
+      "parent_symbols": [
+        "feature_step",
+        "class_slice_metric"
+      ],
+      "primitive_id": "invented-primitive-584ac4333dfd16",
+      "quality_gate": {
+        "accepted": true,
+        "executes_arbitrary_code": false,
+        "requires_source_residue": true,
+        "semantic_deduplication_key": "primitive-semantics-ee6543f2051683",
+        "source": "ast-grammar expandable production + primitive-library quality gate"
+      },
+      "source_residue_ids": [
+        "emergent-residue-442a051e69188c",
+        "emergent-residue-9698e85287f071"
+      ]
+    },
+    {
+      "created_in_generation": 0,
+      "expression": {
+        "max_pairs": 4,
+        "scale": 0.5
+      },
+      "kind": "residue_interaction",
+      "meta_level": 1,
+      "name": "residue_interaction_features",
+      "parent_symbols": [
+        "feature_step",
+        "stress_goal",
+        "accepted_program"
+      ],
+      "primitive_id": "invented-primitive-b258fa72dad039",
+      "quality_gate": {
+        "accepted": true,
+        "executes_arbitrary_code": false,
+        "requires_source_residue": true,
+        "semantic_deduplication_key": "primitive-semantics-b5da3c91bbbd2d",
+        "source": "ast-grammar expandable production + primitive-library quality gate"
+      },
+      "source_residue_ids": [
+        "emergent-residue-1abfdf21ae070e"
+      ]
+    },
+    {
+      "created_in_generation": 1,
+      "expression": {
+        "max_pairs": 4,
+        "scale": 0.5
+      },
+      "kind": "residue_interaction",
+      "meta_level": 1,
+      "name": "residue_interaction_features",
+      "parent_symbols": [
+        "feature_step",
+        "stress_goal",
+        "accepted_program"
+      ],
+      "primitive_id": "invented-primitive-a70a0112777d33",
+      "quality_gate": {
+        "accepted": true,
+        "executes_arbitrary_code": false,
+        "requires_source_residue": true,
+        "semantic_deduplication_key": "primitive-semantics-b5da3c91bbbd2d",
+        "source": "ast-grammar expandable production + primitive-library quality gate"
+      },
+      "source_residue_ids": [
+        "emergent-residue-482c3b2e8cdc10"
+      ]
+    }
+  ],
+  "invented_program_count": 8,
+  "mechanism_success": true,
+  "open_world_task_results": [
+    {
+      "baseline": {
+        "accuracy": 0.3333333333333333,
+        "balanced_accuracy": 0.3333333333333333,
+        "f1_macro": 0.16666666666666666,
+        "worst_class_recall": 0.0
+      },
+      "clean_test_metrics": {
+        "accuracy": 0.9666666666666667,
+        "balanced_accuracy": 0.9666666666666667,
+        "f1_macro": 0.9665831244778612,
+        "worst_class_recall": 0.9
+      },
+      "domain": "open_world_botanical_measurements",
+      "passed": true,
+      "selected_program": {
+        "complexity": 4,
+        "estimator_args": {
+          "class_weight": "balanced",
+          "n_estimators": 180
+        },
+        "estimator_name": "extra_trees",
+        "feature_steps": [],
+        "generation_created": 0,
+        "invented_by": "cross_task_transfer",
+        "parent_program_ids": [
+          "seed_extra_trees"
+        ],
+        "program_id": "transfer-program-73cb010a3fbc73",
+        "source_residue_ids": [],
+        "status": "candidate",
+        "transferred_from_task": "handwritten_digit_recognition"
+      },
+      "split": {
+        "test": 30,
+        "train": 90,
+        "validation": 30
+      },
+      "stress_test_metrics": {
+        "feature_dropout_balanced_accuracy": 0.9,
+        "noise_balanced_accuracy": 0.9666666666666667,
+        "stress_floor_balanced_accuracy": 0.9
+      },
+      "task_name": "iris_morphology_species",
+      "thresholds": {
+        "min_baseline_margin": 0.45,
+        "min_clean_test_balanced_accuracy": 0.9,
+        "min_stress_floor_balanced_accuracy": 0.76,
+        "observed_baseline_margin": 0.6333333333333333
+      }
+    }
+  ],
+  "self_generated_goal_count": 5,
+  "task_results": [
+    {
+      "baseline": {
+        "accuracy": 0.6228070175438597,
+        "balanced_accuracy": 0.5,
+        "f1_macro": 0.3837837837837838,
+        "worst_class_recall": 0.0
+      },
+      "clean_test_metrics": {
+        "accuracy": 0.9824561403508771,
+        "balanced_accuracy": 0.9767441860465116,
+        "f1_macro": 0.9811507936507937,
+        "worst_class_recall": 0.9534883720930233
+      },
+      "domain": "tabular_medical_measurements",
+      "passed": true,
+      "selected_program": {
+        "complexity": 4,
+        "estimator_args": {
+          "class_weight": "balanced"
+        },
+        "estimator_name": "logistic",
+        "feature_steps": [
+          {
+            "args": {},
+            "name": "standard_scale"
+          }
+        ],
+        "generation_created": 0,
+        "invented_by": "seed",
+        "parent_program_ids": [],
+        "program_id": "seed_scaled_logistic",
+        "source_residue_ids": [],
+        "status": "accepted",
+        "transferred_from_task": null
+      },
+      "split": {
+        "test": 114,
+        "train": 341,
+        "validation": 114
+      },
+      "stress_test_metrics": {
+        "feature_dropout_balanced_accuracy": 0.9697019325253848,
+        "noise_balanced_accuracy": 0.9580740255486406,
+        "stress_floor_balanced_accuracy": 0.9580740255486406
+      },
+      "task_name": "breast_cancer_diagnosis",
+      "thresholds": {
+        "min_baseline_margin": 0.25,
+        "min_clean_test_balanced_accuracy": 0.9,
+        "min_stress_floor_balanced_accuracy": 0.76,
+        "observed_baseline_margin": 0.4767441860465116
+      }
+    },
+    {
+      "baseline": {
+        "accuracy": 0.4166666666666667,
+        "balanced_accuracy": 0.3333333333333333,
+        "f1_macro": 0.19607843137254902,
+        "worst_class_recall": 0.0
+      },
+      "clean_test_metrics": {
+        "accuracy": 0.9722222222222222,
+        "balanced_accuracy": 0.9777777777777779,
+        "f1_macro": 0.9709618874773139,
+        "worst_class_recall": 0.9333333333333333
+      },
+      "domain": "tabular_chemical_measurements",
+      "passed": true,
+      "selected_program": {
+        "complexity": 5,
+        "estimator_args": {
+          "C": 10.0,
+          "class_weight": "balanced"
+        },
+        "estimator_name": "rbf_svc",
+        "feature_steps": [
+          {
+            "args": {},
+            "name": "standard_scale"
+          }
+        ],
+        "generation_created": 0,
+        "invented_by": "seed",
+        "parent_program_ids": [],
+        "program_id": "seed_scaled_rbf_svc",
+        "source_residue_ids": [],
+        "status": "accepted",
+        "transferred_from_task": null
+      },
+      "split": {
+        "test": 36,
+        "train": 106,
+        "validation": 36
+      },
+      "stress_test_metrics": {
+        "feature_dropout_balanced_accuracy": 0.9777777777777779,
+        "noise_balanced_accuracy": 0.9777777777777779,
+        "stress_floor_balanced_accuracy": 0.9777777777777779
+      },
+      "task_name": "wine_chemical_origin",
+      "thresholds": {
+        "min_baseline_margin": 0.35,
+        "min_clean_test_balanced_accuracy": 0.9,
+        "min_stress_floor_balanced_accuracy": 0.76,
+        "observed_baseline_margin": 0.6444444444444446
+      }
+    },
+    {
+      "baseline": {
+        "accuracy": 0.10277777777777777,
+        "balanced_accuracy": 0.1,
+        "f1_macro": 0.01863979848866499,
+        "worst_class_recall": 0.0
+      },
+      "clean_test_metrics": {
+        "accuracy": 0.9888888888888889,
+        "balanced_accuracy": 0.9888845988845988,
+        "f1_macro": 0.9888432855556143,
+        "worst_class_recall": 0.9444444444444444
+      },
+      "domain": "image_feature_classification",
+      "passed": true,
+      "selected_program": {
+        "complexity": 4,
+        "estimator_args": {
+          "class_weight": "balanced",
+          "n_estimators": 180
+        },
+        "estimator_name": "extra_trees",
+        "feature_steps": [],
+        "generation_created": 0,
+        "invented_by": "seed",
+        "parent_program_ids": [],
+        "program_id": "seed_extra_trees",
+        "source_residue_ids": [],
+        "status": "accepted",
+        "transferred_from_task": null
+      },
+      "split": {
+        "test": 360,
+        "train": 1078,
+        "validation": 359
+      },
+      "stress_test_metrics": {
+        "feature_dropout_balanced_accuracy": 0.9888845988845988,
+        "noise_balanced_accuracy": 0.9888845988845988,
+        "stress_floor_balanced_accuracy": 0.9888845988845988
+      },
+      "task_name": "handwritten_digit_recognition",
+      "thresholds": {
+        "min_baseline_margin": 0.75,
+        "min_clean_test_balanced_accuracy": 0.92,
+        "min_stress_floor_balanced_accuracy": 0.78,
+        "observed_baseline_margin": 0.8888845988845988
+      }
+    }
+  ],
+  "transferred_program_count": 3
+}

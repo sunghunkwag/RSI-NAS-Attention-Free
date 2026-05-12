@@ -1,0 +1,538 @@
+{
+  "agi_claim_verified": false,
+  "dataset_results": [
+    {
+      "baseline": {
+        "accuracy": 0.6228070175438597,
+        "balanced_accuracy": 0.5,
+        "f1_macro": 0.3837837837837838
+      },
+      "candidate_count": 6,
+      "clean_test_metrics": {
+        "accuracy": 0.9736842105263158,
+        "balanced_accuracy": 0.9651162790697674,
+        "f1_macro": 0.9715828832571666
+      },
+      "domain": "tabular_medical_measurements",
+      "passed": true,
+      "selected_candidate": {
+        "complexity": 2,
+        "family": "linear_model",
+        "name": "scaled_logistic_regression"
+      },
+      "split": {
+        "test": 114,
+        "train": 341,
+        "validation": 114
+      },
+      "stress_test_metrics": {
+        "feature_dropout_balanced_accuracy": 0.9651162790697674,
+        "noise_balanced_accuracy": 0.9651162790697674,
+        "stress_floor_balanced_accuracy": 0.9651162790697674
+      },
+      "task_name": "breast_cancer_diagnosis",
+      "thresholds": {
+        "min_baseline_margin": 0.25,
+        "min_clean_test_balanced_accuracy": 0.9,
+        "min_stress_floor_balanced_accuracy": 0.76,
+        "observed_baseline_margin": 0.4651162790697674
+      },
+      "validation_metrics": {
+        "feature_dropout_balanced_accuracy": 0.9761904761904762,
+        "noise_balanced_accuracy": 0.9880952380952381,
+        "ranking_stability": 0.988095238095238,
+        "stress_floor_balanced_accuracy": 0.9761904761904762,
+        "stress_gap": 0.011904761904761973,
+        "validation_accuracy": 0.9912280701754386,
+        "validation_balanced_accuracy": 0.9880952380952381,
+        "validation_f1_macro": 0.9905276277523889,
+        "worst_class_recall": 0.9761904761904762
+      }
+    },
+    {
+      "baseline": {
+        "accuracy": 0.4166666666666667,
+        "balanced_accuracy": 0.3333333333333333,
+        "f1_macro": 0.19607843137254902
+      },
+      "candidate_count": 6,
+      "clean_test_metrics": {
+        "accuracy": 0.9722222222222222,
+        "balanced_accuracy": 0.9777777777777779,
+        "f1_macro": 0.9709618874773139
+      },
+      "domain": "tabular_chemical_measurements",
+      "passed": true,
+      "selected_candidate": {
+        "complexity": 3,
+        "family": "margin_classifier",
+        "name": "scaled_linear_svc"
+      },
+      "split": {
+        "test": 36,
+        "train": 106,
+        "validation": 36
+      },
+      "stress_test_metrics": {
+        "feature_dropout_balanced_accuracy": 0.9777777777777779,
+        "noise_balanced_accuracy": 0.9777777777777779,
+        "stress_floor_balanced_accuracy": 0.9777777777777779
+      },
+      "task_name": "wine_chemical_origin",
+      "thresholds": {
+        "min_baseline_margin": 0.35,
+        "min_clean_test_balanced_accuracy": 0.9,
+        "min_stress_floor_balanced_accuracy": 0.76,
+        "observed_baseline_margin": 0.6444444444444446
+      },
+      "validation_metrics": {
+        "feature_dropout_balanced_accuracy": 1.0,
+        "noise_balanced_accuracy": 1.0,
+        "ranking_stability": 1.0,
+        "stress_floor_balanced_accuracy": 1.0,
+        "stress_gap": 0.0,
+        "validation_accuracy": 1.0,
+        "validation_balanced_accuracy": 1.0,
+        "validation_f1_macro": 1.0,
+        "worst_class_recall": 1.0
+      }
+    },
+    {
+      "baseline": {
+        "accuracy": 0.10277777777777777,
+        "balanced_accuracy": 0.1,
+        "f1_macro": 0.01863979848866499
+      },
+      "candidate_count": 6,
+      "clean_test_metrics": {
+        "accuracy": 0.9861111111111112,
+        "balanced_accuracy": 0.986027456027456,
+        "f1_macro": 0.9860192689924674
+      },
+      "domain": "image_feature_classification",
+      "passed": true,
+      "selected_candidate": {
+        "complexity": 4,
+        "family": "tree_ensemble",
+        "name": "extra_trees"
+      },
+      "split": {
+        "test": 360,
+        "train": 1078,
+        "validation": 359
+      },
+      "stress_test_metrics": {
+        "feature_dropout_balanced_accuracy": 0.9720549120549119,
+        "noise_balanced_accuracy": 0.9888845988845988,
+        "stress_floor_balanced_accuracy": 0.9720549120549119
+      },
+      "task_name": "handwritten_digit_recognition",
+      "thresholds": {
+        "min_baseline_margin": 0.75,
+        "min_clean_test_balanced_accuracy": 0.92,
+        "min_stress_floor_balanced_accuracy": 0.78,
+        "observed_baseline_margin": 0.886027456027456
+      },
+      "validation_metrics": {
+        "feature_dropout_balanced_accuracy": 0.9610317460317461,
+        "noise_balanced_accuracy": 0.9804761904761905,
+        "ranking_stability": 0.9777777777777779,
+        "stress_floor_balanced_accuracy": 0.9610317460317461,
+        "stress_gap": 0.022222222222222143,
+        "validation_accuracy": 0.9832869080779945,
+        "validation_balanced_accuracy": 0.9832539682539683,
+        "validation_f1_macro": 0.9832905015762433,
+        "worst_class_recall": 0.9714285714285714
+      }
+    }
+  ],
+  "eie_real_benchmark_success": true,
+  "evolution_cycles": [
+    {
+      "generation": 0,
+      "instrument_after": {
+        "balanced_accuracy_weight": 1.0,
+        "complexity_penalty": 0.002,
+        "diagnostic_feature_dropout_rate": 0.08,
+        "diagnostic_noise_std": 0.05,
+        "f1_macro_weight": 0.0,
+        "feature_dropout_stress_weight": 0.18,
+        "generation": 1,
+        "instrument_id": "eie-instrument-9cd0ae0ec08129",
+        "noise_stress_weight": 0.22,
+        "parent_instrument_id": "eie-instrument-seed-7144ac4721d025",
+        "ranking_stability_weight": 0.2,
+        "source_residue_ids": [
+          "eie-real-residue-9aaa61aa7d449f",
+          "eie-real-residue-a4ab39d255eb97",
+          "eie-real-residue-c311d83320ac21",
+          "eie-real-residue-ffca4c113d2c37"
+        ],
+        "status": "probation",
+        "worst_class_recall_weight": 0.0
+      },
+      "instrument_before": {
+        "balanced_accuracy_weight": 1.0,
+        "complexity_penalty": 0.0,
+        "diagnostic_feature_dropout_rate": 0.08,
+        "diagnostic_noise_std": 0.05,
+        "f1_macro_weight": 0.0,
+        "feature_dropout_stress_weight": 0.0,
+        "generation": 0,
+        "instrument_id": "eie-instrument-seed-7144ac4721d025",
+        "noise_stress_weight": 0.0,
+        "parent_instrument_id": null,
+        "ranking_stability_weight": 0.0,
+        "source_residue_ids": [],
+        "status": "accepted",
+        "worst_class_recall_weight": 0.0
+      },
+      "patch": {
+        "evaluator_terms": [
+          "diagnostic_probe_weighting",
+          "feature_dropout_stress",
+          "noise_stress",
+          "stress_ranking_stability"
+        ],
+        "parent_instrument_id": "eie-instrument-seed-7144ac4721d025",
+        "patch_id": "eie-real-patch-87d2c7e16ffa4e",
+        "rationale": [
+          "Residue showed validation stress degradation ignored by the active evaluator.",
+          "Diagnostic stress probes selected a different learner than the clean evaluator.",
+          "Diagnostic probes existed but had no causal influence on selection."
+        ],
+        "source_residue_ids": [
+          "eie-real-residue-ffca4c113d2c37",
+          "eie-real-residue-9aaa61aa7d449f",
+          "eie-real-residue-a4ab39d255eb97",
+          "eie-real-residue-c311d83320ac21"
+        ],
+        "target_updates": {
+          "complexity_penalty": 0.002,
+          "feature_dropout_stress_weight": 0.18,
+          "noise_stress_weight": 0.22,
+          "ranking_stability_weight": 0.2
+        },
+        "validation_required": true
+      },
+      "probation_decision": {
+        "accepted": true,
+        "adversarial_checks": {
+          "no_clean_validation_collapse": true,
+          "no_diagnostic_regression": true,
+          "ranking_changed_or_new_terms": true,
+          "source_residue_required": true,
+          "test_split_not_used": true,
+          "weights_changed": true
+        },
+        "candidate_instrument_id": "eie-instrument-9cd0ae0ec08129",
+        "candidate_validation_summary": {
+          "ranking_stability": 0.9886243386243386,
+          "stress_floor_balanced_accuracy": 0.9790740740740741,
+          "validation_balanced_accuracy": 0.9904497354497354,
+          "validation_f1_macro": 0.9912727097762107,
+          "worst_class_recall": 0.9825396825396826
+        },
+        "generation": 0,
+        "parent_instrument_id": "eie-instrument-seed-7144ac4721d025",
+        "parent_validation_summary": {
+          "ranking_stability": 0.9886243386243386,
+          "stress_floor_balanced_accuracy": 0.9790740740740741,
+          "validation_balanced_accuracy": 0.9904497354497354,
+          "validation_f1_macro": 0.9912727097762107,
+          "worst_class_recall": 0.9825396825396826
+        },
+        "ranking_changed_tasks": [],
+        "rejection_reason": "accepted_for_probation",
+        "score_delta": 0.0,
+        "status": "probation"
+      },
+      "residues": [
+        {
+          "confidence": 0.75,
+          "generation": 0,
+          "missing_evidence": {
+            "missing_instrument_term": "diagnostic_probe_weighting",
+            "reason": "diagnostic probes exist but cannot influence selection"
+          },
+          "observed_evidence": {
+            "candidate_count": 6,
+            "max_stress_gap": 0.023809523809523725
+          },
+          "proposed_mutation_targets": [
+            "ranking_stability_weight",
+            "noise_stress_weight"
+          ],
+          "residue_id": "eie-real-residue-ffca4c113d2c37",
+          "residue_type": "UNWEIGHTED_DIAGNOSTIC_SIGNAL",
+          "selected_candidate": "scaled_logistic_regression",
+          "severity": "low",
+          "task_name": "breast_cancer_diagnosis"
+        },
+        {
+          "confidence": 0.75,
+          "generation": 0,
+          "missing_evidence": {
+            "missing_instrument_term": "diagnostic_probe_weighting",
+            "reason": "diagnostic probes exist but cannot influence selection"
+          },
+          "observed_evidence": {
+            "candidate_count": 6,
+            "max_stress_gap": 0.023809523809523725
+          },
+          "proposed_mutation_targets": [
+            "ranking_stability_weight",
+            "noise_stress_weight"
+          ],
+          "residue_id": "eie-real-residue-9aaa61aa7d449f",
+          "residue_type": "UNWEIGHTED_DIAGNOSTIC_SIGNAL",
+          "selected_candidate": "scaled_linear_svc",
+          "severity": "low",
+          "task_name": "wine_chemical_origin"
+        },
+        {
+          "confidence": 0.9,
+          "generation": 0,
+          "missing_evidence": {
+            "missing_instrument_terms": [
+              "noise_stress_weight",
+              "feature_dropout_stress_weight"
+            ],
+            "reason": "candidate selection ignores validation stress degradation"
+          },
+          "observed_evidence": {
+            "candidate": "extra_trees",
+            "stress_floor_balanced_accuracy": 0.9610317460317461,
+            "stress_gap": 0.022222222222222143,
+            "validation_balanced_accuracy": 0.9832539682539683
+          },
+          "proposed_mutation_targets": [
+            "noise_stress_weight",
+            "feature_dropout_stress_weight",
+            "ranking_stability_weight"
+          ],
+          "residue_id": "eie-real-residue-a4ab39d255eb97",
+          "residue_type": "ROBUSTNESS_STRESS_BLIND_SPOT",
+          "selected_candidate": "extra_trees",
+          "severity": "medium",
+          "task_name": "handwritten_digit_recognition"
+        },
+        {
+          "confidence": 0.9,
+          "generation": 0,
+          "missing_evidence": {
+            "missing_instrument_term": "ranking_stability",
+            "reason": "the evaluator would choose a different learner under diagnostic stress probes"
+          },
+          "observed_evidence": {
+            "clean_score": 0.9832539682539683,
+            "clean_selected_candidate": "extra_trees",
+            "stress_floor_of_clean_selection": 0.9610317460317461,
+            "stress_floor_of_stress_selection": 0.9665079365079364,
+            "stress_selected_candidate": "scaled_knn_5"
+          },
+          "proposed_mutation_targets": [
+            "ranking_stability_weight"
+          ],
+          "residue_id": "eie-real-residue-c311d83320ac21",
+          "residue_type": "STRESS_RANKING_DISAGREEMENT",
+          "selected_candidate": "extra_trees",
+          "severity": "medium",
+          "task_name": "handwritten_digit_recognition"
+        }
+      ],
+      "selected_by_task": {
+        "breast_cancer_diagnosis": "scaled_logistic_regression",
+        "handwritten_digit_recognition": "extra_trees",
+        "wine_chemical_origin": "scaled_linear_svc"
+      }
+    },
+    {
+      "generation": 1,
+      "instrument_after": {
+        "balanced_accuracy_weight": 1.0,
+        "complexity_penalty": 0.002,
+        "diagnostic_feature_dropout_rate": 0.08,
+        "diagnostic_noise_std": 0.05,
+        "f1_macro_weight": 0.0,
+        "feature_dropout_stress_weight": 0.18,
+        "generation": 1,
+        "instrument_id": "eie-instrument-9cd0ae0ec08129",
+        "noise_stress_weight": 0.22,
+        "parent_instrument_id": "eie-instrument-seed-7144ac4721d025",
+        "ranking_stability_weight": 0.2,
+        "source_residue_ids": [
+          "eie-real-residue-9aaa61aa7d449f",
+          "eie-real-residue-a4ab39d255eb97",
+          "eie-real-residue-c311d83320ac21",
+          "eie-real-residue-ffca4c113d2c37"
+        ],
+        "status": "probation",
+        "worst_class_recall_weight": 0.0
+      },
+      "instrument_before": {
+        "balanced_accuracy_weight": 1.0,
+        "complexity_penalty": 0.002,
+        "diagnostic_feature_dropout_rate": 0.08,
+        "diagnostic_noise_std": 0.05,
+        "f1_macro_weight": 0.0,
+        "feature_dropout_stress_weight": 0.18,
+        "generation": 1,
+        "instrument_id": "eie-instrument-9cd0ae0ec08129",
+        "noise_stress_weight": 0.22,
+        "parent_instrument_id": "eie-instrument-seed-7144ac4721d025",
+        "ranking_stability_weight": 0.2,
+        "source_residue_ids": [
+          "eie-real-residue-9aaa61aa7d449f",
+          "eie-real-residue-a4ab39d255eb97",
+          "eie-real-residue-c311d83320ac21",
+          "eie-real-residue-ffca4c113d2c37"
+        ],
+        "status": "probation",
+        "worst_class_recall_weight": 0.0
+      },
+      "patch": null,
+      "probation_decision": null,
+      "residues": [],
+      "selected_by_task": {
+        "breast_cancer_diagnosis": "scaled_logistic_regression",
+        "handwritten_digit_recognition": "extra_trees",
+        "wine_chemical_origin": "scaled_linear_svc"
+      }
+    }
+  ],
+  "failure_reasons": [
+    "new learner primitives synthesized and accepted from real-data residue",
+    "self-proposed real-world goals and success criteria",
+    "recursive improvement that creates new task families or learning mechanisms without manual insertion"
+  ],
+  "final_instrument": {
+    "balanced_accuracy_weight": 1.0,
+    "complexity_penalty": 0.002,
+    "diagnostic_feature_dropout_rate": 0.08,
+    "diagnostic_noise_std": 0.05,
+    "f1_macro_weight": 0.0,
+    "feature_dropout_stress_weight": 0.18,
+    "generation": 1,
+    "instrument_id": "eie-instrument-9cd0ae0ec08129",
+    "noise_stress_weight": 0.22,
+    "parent_instrument_id": "eie-instrument-seed-7144ac4721d025",
+    "ranking_stability_weight": 0.2,
+    "source_residue_ids": [
+      "eie-real-residue-9aaa61aa7d449f",
+      "eie-real-residue-a4ab39d255eb97",
+      "eie-real-residue-c311d83320ac21",
+      "eie-real-residue-ffca4c113d2c37"
+    ],
+    "status": "probation",
+    "worst_class_recall_weight": 0.0
+  },
+  "final_verdict": "EIE_REAL_WORLD_INSTRUMENT_EVOLVED_BUT_AGI_FAILED",
+  "gates": [
+    {
+      "evidence": {
+        "patch_count": 1,
+        "residue_count": 4,
+        "residue_types": [
+          "ROBUSTNESS_STRESS_BLIND_SPOT",
+          "STRESS_RANKING_DISAGREEMENT",
+          "UNWEIGHTED_DIAGNOSTIC_SIGNAL"
+        ]
+      },
+      "name": "residue_conditioned_instrument_mutation",
+      "passed": true,
+      "score": 1.0
+    },
+    {
+      "evidence": {
+        "final_instrument_id": "eie-instrument-9cd0ae0ec08129",
+        "final_weights": {
+          "balanced_accuracy_weight": 1.0,
+          "f1_macro_weight": 0.0,
+          "feature_dropout_stress_weight": 0.18,
+          "noise_stress_weight": 0.22,
+          "ranking_stability_weight": 0.2,
+          "worst_class_recall_weight": 0.0
+        },
+        "seed_instrument_id": "eie-instrument-seed-7144ac4721d025"
+      },
+      "name": "instrument_lineage_changed_evaluator_terms",
+      "passed": [
+        "eie-real-residue-9aaa61aa7d449f",
+        "eie-real-residue-a4ab39d255eb97",
+        "eie-real-residue-c311d83320ac21",
+        "eie-real-residue-ffca4c113d2c37"
+      ],
+      "score": 1.0
+    },
+    {
+      "evidence": {
+        "accepted": 1,
+        "adversarial_checks": [
+          {
+            "no_clean_validation_collapse": true,
+            "no_diagnostic_regression": true,
+            "ranking_changed_or_new_terms": true,
+            "source_residue_required": true,
+            "test_split_not_used": true,
+            "weights_changed": true
+          }
+        ],
+        "decision_count": 1,
+        "statuses": [
+          "probation"
+        ]
+      },
+      "name": "probationary_evaluator_acceptance",
+      "passed": true,
+      "score": 1.0
+    },
+    {
+      "evidence": {
+        "average_stress_floor_balanced_accuracy": 0.9716496563008191,
+        "passed": 3,
+        "total": 3
+      },
+      "name": "heldout_real_data_after_eie_selection",
+      "passed": true,
+      "score": 0.9763071709583336
+    },
+    {
+      "evidence": {
+        "evolution_signal": "train and validation only",
+        "test_signal": "held-out once after final instrument selection"
+      },
+      "name": "test_split_not_used_for_instrument_evolution",
+      "passed": true,
+      "score": 1.0
+    },
+    {
+      "evidence": {
+        "missing": "new learner primitives synthesized and accepted from real-data residue",
+        "observed": "the evaluator instrument evolved, but candidate learners were predefined"
+      },
+      "name": "learner_primitive_invention",
+      "passed": false,
+      "score": 0.0
+    },
+    {
+      "evidence": {
+        "missing": "self-proposed real-world goals and success criteria",
+        "observed": "EIE mutates evaluator terms for supplied benchmark goals"
+      },
+      "name": "autonomous_goal_formation",
+      "passed": false,
+      "score": 0.0
+    },
+    {
+      "evidence": {
+        "missing": "recursive improvement that creates new task families or learning mechanisms without manual insertion",
+        "observed": "bounded evaluator evolution over a fixed candidate library"
+      },
+      "name": "open_ended_recursive_self_improvement",
+      "passed": false,
+      "score": 0.0
+    }
+  ],
+  "instrument_evolved": true
+}

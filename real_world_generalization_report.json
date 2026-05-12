@@ -1,0 +1,425 @@
+{
+  "agi_claim_verified": false,
+  "dataset_results": [
+    {
+      "baseline": {
+        "accuracy": 0.6228070175438597,
+        "balanced_accuracy": 0.5,
+        "f1_macro": 0.3837837837837838
+      },
+      "candidate_count": 6,
+      "candidate_evaluations": [
+        {
+          "candidate": {
+            "complexity": 2,
+            "family": "linear_model",
+            "name": "scaled_logistic_regression"
+          },
+          "elapsed_seconds": 0.031000000017229468,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 0.9912280701754386,
+          "validation_balanced_accuracy": 0.9880952380952381,
+          "validation_f1_macro": 0.9905276277523889
+        },
+        {
+          "candidate": {
+            "complexity": 3,
+            "family": "margin_classifier",
+            "name": "scaled_linear_svc"
+          },
+          "elapsed_seconds": 0.0,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 0.9736842105263158,
+          "validation_balanced_accuracy": 0.9692460317460317,
+          "validation_f1_macro": 0.9715828832571666
+        },
+        {
+          "candidate": {
+            "complexity": 4,
+            "family": "kernel_classifier",
+            "name": "scaled_rbf_svc"
+          },
+          "elapsed_seconds": 0.01600000000325963,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 0.9824561403508771,
+          "validation_balanced_accuracy": 0.9761904761904762,
+          "validation_f1_macro": 0.9809555629802873
+        },
+        {
+          "candidate": {
+            "complexity": 3,
+            "family": "instance_classifier",
+            "name": "scaled_knn_5"
+          },
+          "elapsed_seconds": 2.0469999999913853,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 0.9649122807017544,
+          "validation_balanced_accuracy": 0.9523809523809523,
+          "validation_f1_macro": 0.9614864864864865
+        },
+        {
+          "candidate": {
+            "complexity": 4,
+            "family": "tree_ensemble",
+            "name": "random_forest"
+          },
+          "elapsed_seconds": 0.26500000001396984,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 0.9473684210526315,
+          "validation_balanced_accuracy": 0.9484126984126984,
+          "validation_f1_macro": 0.9439895185063871
+        },
+        {
+          "candidate": {
+            "complexity": 4,
+            "family": "tree_ensemble",
+            "name": "extra_trees"
+          },
+          "elapsed_seconds": 0.21899999998277053,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 0.9473684210526315,
+          "validation_balanced_accuracy": 0.9434523809523809,
+          "validation_f1_macro": 0.9434523809523809
+        }
+      ],
+      "domain": "tabular_medical_measurements",
+      "elapsed_seconds": 2.609000000025844,
+      "passed": true,
+      "selected_candidate": {
+        "complexity": 2,
+        "family": "linear_model",
+        "name": "scaled_logistic_regression"
+      },
+      "split": {
+        "test": 114,
+        "train": 341,
+        "validation": 114
+      },
+      "task_name": "breast_cancer_diagnosis",
+      "test": {
+        "accuracy": 0.9736842105263158,
+        "balanced_accuracy": 0.9651162790697674,
+        "f1_macro": 0.9715828832571666
+      },
+      "thresholds": {
+        "min_baseline_margin": 0.25,
+        "min_test_balanced_accuracy": 0.9,
+        "observed_baseline_margin": 0.4651162790697674
+      },
+      "validation": {
+        "accuracy": 0.9912280701754386,
+        "balanced_accuracy": 0.9880952380952381,
+        "f1_macro": 0.9905276277523889
+      }
+    },
+    {
+      "baseline": {
+        "accuracy": 0.4166666666666667,
+        "balanced_accuracy": 0.3333333333333333,
+        "f1_macro": 0.19607843137254902
+      },
+      "candidate_count": 6,
+      "candidate_evaluations": [
+        {
+          "candidate": {
+            "complexity": 2,
+            "family": "linear_model",
+            "name": "scaled_logistic_regression"
+          },
+          "elapsed_seconds": 0.0159999999741558,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 0.9722222222222222,
+          "validation_balanced_accuracy": 0.9761904761904763,
+          "validation_f1_macro": 0.974320987654321
+        },
+        {
+          "candidate": {
+            "complexity": 3,
+            "family": "margin_classifier",
+            "name": "scaled_linear_svc"
+          },
+          "elapsed_seconds": 0.0,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 1.0,
+          "validation_balanced_accuracy": 1.0,
+          "validation_f1_macro": 1.0
+        },
+        {
+          "candidate": {
+            "complexity": 4,
+            "family": "kernel_classifier",
+            "name": "scaled_rbf_svc"
+          },
+          "elapsed_seconds": 0.0,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 1.0,
+          "validation_balanced_accuracy": 1.0,
+          "validation_f1_macro": 1.0
+        },
+        {
+          "candidate": {
+            "complexity": 3,
+            "family": "instance_classifier",
+            "name": "scaled_knn_5"
+          },
+          "elapsed_seconds": 0.015000000013969839,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 0.9722222222222222,
+          "validation_balanced_accuracy": 0.9761904761904763,
+          "validation_f1_macro": 0.974320987654321
+        },
+        {
+          "candidate": {
+            "complexity": 4,
+            "family": "tree_ensemble",
+            "name": "random_forest"
+          },
+          "elapsed_seconds": 0.21900000001187436,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 0.9722222222222222,
+          "validation_balanced_accuracy": 0.9761904761904763,
+          "validation_f1_macro": 0.974320987654321
+        },
+        {
+          "candidate": {
+            "complexity": 4,
+            "family": "tree_ensemble",
+            "name": "extra_trees"
+          },
+          "elapsed_seconds": 0.2029999999795109,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 0.9722222222222222,
+          "validation_balanced_accuracy": 0.9761904761904763,
+          "validation_f1_macro": 0.974320987654321
+        }
+      ],
+      "domain": "tabular_chemical_measurements",
+      "elapsed_seconds": 0.4529999999795109,
+      "passed": true,
+      "selected_candidate": {
+        "complexity": 3,
+        "family": "margin_classifier",
+        "name": "scaled_linear_svc"
+      },
+      "split": {
+        "test": 36,
+        "train": 106,
+        "validation": 36
+      },
+      "task_name": "wine_chemical_origin",
+      "test": {
+        "accuracy": 0.9722222222222222,
+        "balanced_accuracy": 0.9777777777777779,
+        "f1_macro": 0.9709618874773139
+      },
+      "thresholds": {
+        "min_baseline_margin": 0.35,
+        "min_test_balanced_accuracy": 0.9,
+        "observed_baseline_margin": 0.6444444444444446
+      },
+      "validation": {
+        "accuracy": 1.0,
+        "balanced_accuracy": 1.0,
+        "f1_macro": 1.0
+      }
+    },
+    {
+      "baseline": {
+        "accuracy": 0.10277777777777777,
+        "balanced_accuracy": 0.1,
+        "f1_macro": 0.01863979848866499
+      },
+      "candidate_count": 6,
+      "candidate_evaluations": [
+        {
+          "candidate": {
+            "complexity": 2,
+            "family": "linear_model",
+            "name": "scaled_logistic_regression"
+          },
+          "elapsed_seconds": 0.0629999999946449,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 0.9665738161559888,
+          "validation_balanced_accuracy": 0.9664285714285714,
+          "validation_f1_macro": 0.9664895516970529
+        },
+        {
+          "candidate": {
+            "complexity": 3,
+            "family": "margin_classifier",
+            "name": "scaled_linear_svc"
+          },
+          "elapsed_seconds": 0.2340000000258442,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 0.9526462395543176,
+          "validation_balanced_accuracy": 0.9524603174603176,
+          "validation_f1_macro": 0.9526340817522957
+        },
+        {
+          "candidate": {
+            "complexity": 4,
+            "family": "kernel_classifier",
+            "name": "scaled_rbf_svc"
+          },
+          "elapsed_seconds": 0.0629999999946449,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 0.9749303621169917,
+          "validation_balanced_accuracy": 0.975,
+          "validation_f1_macro": 0.975028080201146
+        },
+        {
+          "candidate": {
+            "complexity": 3,
+            "family": "instance_classifier",
+            "name": "scaled_knn_5"
+          },
+          "elapsed_seconds": 0.030999999988125637,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 0.9693593314763231,
+          "validation_balanced_accuracy": 0.9692857142857143,
+          "validation_f1_macro": 0.9692615696432189
+        },
+        {
+          "candidate": {
+            "complexity": 4,
+            "family": "tree_ensemble",
+            "name": "random_forest"
+          },
+          "elapsed_seconds": 0.5,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 0.9693593314763231,
+          "validation_balanced_accuracy": 0.9692857142857143,
+          "validation_f1_macro": 0.9695031822234329
+        },
+        {
+          "candidate": {
+            "complexity": 4,
+            "family": "tree_ensemble",
+            "name": "extra_trees"
+          },
+          "elapsed_seconds": 0.42199999999138527,
+          "error": null,
+          "fit_ok": true,
+          "validation_accuracy": 0.9832869080779945,
+          "validation_balanced_accuracy": 0.9832539682539683,
+          "validation_f1_macro": 0.9832905015762433
+        }
+      ],
+      "domain": "image_feature_classification",
+      "elapsed_seconds": 1.8280000000086147,
+      "passed": true,
+      "selected_candidate": {
+        "complexity": 4,
+        "family": "tree_ensemble",
+        "name": "extra_trees"
+      },
+      "split": {
+        "test": 360,
+        "train": 1078,
+        "validation": 359
+      },
+      "task_name": "handwritten_digit_recognition",
+      "test": {
+        "accuracy": 0.9861111111111112,
+        "balanced_accuracy": 0.986027456027456,
+        "f1_macro": 0.9860192689924674
+      },
+      "thresholds": {
+        "min_baseline_margin": 0.75,
+        "min_test_balanced_accuracy": 0.92,
+        "observed_baseline_margin": 0.886027456027456
+      },
+      "validation": {
+        "accuracy": 0.9832869080779945,
+        "balanced_accuracy": 0.9832539682539683,
+        "f1_macro": 0.9832905015762433
+      }
+    }
+  ],
+  "failure_reasons": [
+    "the system does not invent new learners or primitives for unseen real domains",
+    "self-generated goals with independent success criteria",
+    "accepted self-modifications that improve future real-data learning without manual edits"
+  ],
+  "final_verdict": "REAL_BENCHMARK_GENERALIZATION_PASSED_BUT_AGI_FAILED",
+  "gates": [
+    {
+      "evidence": {
+        "datasets": [
+          "breast_cancer_diagnosis",
+          "wine_chemical_origin",
+          "handwritten_digit_recognition"
+        ],
+        "passed": 3,
+        "total": 3
+      },
+      "name": "held_out_real_dataset_generalization",
+      "passed": true,
+      "score": 0.9763071709583336
+    },
+    {
+      "evidence": {
+        "final_signal": "held-out test split after refitting train+validation",
+        "selection_signal": "validation split only"
+      },
+      "name": "selection_uses_validation_not_test",
+      "passed": true,
+      "score": 1.0
+    },
+    {
+      "evidence": {
+        "breast_cancer_diagnosis": 0.4651162790697674,
+        "handwritten_digit_recognition": 0.886027456027456,
+        "wine_chemical_origin": 0.6444444444444446
+      },
+      "name": "beats_dummy_baseline_by_required_margin",
+      "passed": true,
+      "score": 0.6651960598472226
+    },
+    {
+      "evidence": {
+        "missing": "the system does not invent new learners or primitives for unseen real domains",
+        "observed": "bounded candidate library over real datasets"
+      },
+      "name": "novel_domain_without_predefined_candidate_library",
+      "passed": false,
+      "score": 0.0
+    },
+    {
+      "evidence": {
+        "missing": "self-generated goals with independent success criteria",
+        "observed": "externally supplied benchmark goals"
+      },
+      "name": "autonomous_goal_formation",
+      "passed": false,
+      "score": 0.0
+    },
+    {
+      "evidence": {
+        "missing": "accepted self-modifications that improve future real-data learning without manual edits",
+        "observed": "model selection, not recursive improvement of the learner"
+      },
+      "name": "recursive_self_improvement_on_real_tasks",
+      "passed": false,
+      "score": 0.0
+    }
+  ],
+  "real_benchmark_success": true
+}
