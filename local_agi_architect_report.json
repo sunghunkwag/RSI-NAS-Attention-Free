@@ -1,0 +1,217 @@
+﻿{
+  "boundary": "This is an AGI-architecture integration attempt: local source motifs are converted into generated RSI-NAS modules and evaluated. It is not a claim of achieved AGI.",
+  "candidates": [
+    {
+      "buildable": true,
+      "evaluation": {
+        "bpc": 7.9799,
+        "converged": false,
+        "fitness": 0.110692,
+        "param_count": 40057,
+        "train_loss": 5.5049,
+        "wall_seconds": 1.7
+      },
+      "generated_module_name": "local_motif_fusion_4fdfc5a0fa",
+      "genome": {
+        "d_model": 24,
+        "layers": [
+          {
+            "kwargs": {},
+            "module": "local_motif_fusion_4fdfc5a0fa",
+            "repeat": 1
+          },
+          {
+            "kwargs": {},
+            "module": "gated_ffn",
+            "repeat": 1
+          },
+          {
+            "kwargs": {},
+            "module": "squeeze_excite",
+            "repeat": 1
+          }
+        ],
+        "max_len": 128,
+        "vocab_size": 256
+      },
+      "motif_sequence": [
+        "gated_shift_mixer",
+        "nca_step",
+        "fractal_gnn",
+        "gated_ffn"
+      ],
+      "name": "local_architect_candidate_1",
+      "rationale": [
+        "Local AST signal score 1505.0.",
+        "Motifs converted into attention-free residual fusion.",
+        "Candidate remains subject to real RSI-NAS build/evaluation."
+      ],
+      "source_digests": [
+        "a20e8db1366543a5"
+      ],
+      "source_paths": [
+        "C:\\Users\\starg\\AGI_Integration_Lab\\Cognitive-Core-Engine-Test\\unified_rsi_extended.py"
+      ]
+    },
+    {
+      "buildable": true,
+      "evaluation": {
+        "bpc": 8.1145,
+        "converged": false,
+        "fitness": 0.108823,
+        "param_count": 53547,
+        "train_loss": 5.4827,
+        "wall_seconds": 0.16
+      },
+      "generated_module_name": "local_motif_fusion_9bffa294b9",
+      "genome": {
+        "d_model": 24,
+        "layers": [
+          {
+            "kwargs": {},
+            "module": "local_motif_fusion_9bffa294b9",
+            "repeat": 1
+          },
+          {
+            "kwargs": {},
+            "module": "coarse_nca",
+            "repeat": 1
+          },
+          {
+            "kwargs": {},
+            "module": "squeeze_excite",
+            "repeat": 1
+          }
+        ],
+        "max_len": 128,
+        "vocab_size": 256
+      },
+      "motif_sequence": [
+        "nca_step",
+        "fractal_gnn",
+        "gated_ffn",
+        "coarse_nca"
+      ],
+      "name": "local_architect_candidate_2",
+      "rationale": [
+        "Local AST signal score 1330.0.",
+        "Motifs converted into attention-free residual fusion.",
+        "Candidate remains subject to real RSI-NAS build/evaluation."
+      ],
+      "source_digests": [
+        "c56575ace1a3a229"
+      ],
+      "source_paths": [
+        "C:\\Users\\starg\\Documents\\Codex\\2026-05-10\\agi\\github-repo-scan\\Hybrid-Program-Synthesis-with-RSI\\Systemtest.py"
+      ]
+    },
+    {
+      "buildable": true,
+      "evaluation": {
+        "bpc": 7.9046,
+        "converged": false,
+        "fitness": 0.111569,
+        "param_count": 43921,
+        "train_loss": 5.412,
+        "wall_seconds": 0.08
+      },
+      "generated_module_name": "local_motif_fusion_4663c7f622",
+      "genome": {
+        "d_model": 24,
+        "layers": [
+          {
+            "kwargs": {},
+            "module": "local_motif_fusion_4663c7f622",
+            "repeat": 1
+          },
+          {
+            "kwargs": {},
+            "module": "gated_shift_mixer",
+            "repeat": 1
+          },
+          {
+            "kwargs": {},
+            "module": "squeeze_excite",
+            "repeat": 1
+          }
+        ],
+        "max_len": 128,
+        "vocab_size": 256
+      },
+      "motif_sequence": [
+        "fractal_gnn",
+        "gated_ffn",
+        "coarse_nca",
+        "gated_shift_mixer"
+      ],
+      "name": "local_architect_candidate_3",
+      "rationale": [
+        "Local AST signal score 541.0.",
+        "Motifs converted into attention-free residual fusion.",
+        "Candidate remains subject to real RSI-NAS build/evaluation."
+      ],
+      "source_digests": [
+        "fe4905a8c261d1f5"
+      ],
+      "source_paths": [
+        "C:\\Users\\starg\\AGI_Integration_Lab\\Cognitive-Core-Engine-Test\\NON_RSI_AGI_CORE_v5.py"
+      ]
+    },
+    {
+      "buildable": true,
+      "evaluation": {
+        "bpc": 7.9176,
+        "converged": false,
+        "fitness": 0.111634,
+        "param_count": 30193,
+        "train_loss": 5.5619,
+        "wall_seconds": 0.09
+      },
+      "generated_module_name": "local_motif_fusion_3d3056b4d5",
+      "genome": {
+        "d_model": 24,
+        "layers": [
+          {
+            "kwargs": {},
+            "module": "local_motif_fusion_3d3056b4d5",
+            "repeat": 1
+          },
+          {
+            "kwargs": {},
+            "module": "squeeze_excite",
+            "repeat": 1
+          }
+        ],
+        "max_len": 128,
+        "vocab_size": 256
+      },
+      "motif_sequence": [
+        "gated_ffn",
+        "coarse_nca",
+        "gated_shift_mixer",
+        "squeeze_excite"
+      ],
+      "name": "local_architect_candidate_4",
+      "rationale": [
+        "Local AST signal score 501.0.",
+        "Motifs converted into attention-free residual fusion.",
+        "Candidate remains subject to real RSI-NAS build/evaluation."
+      ],
+      "source_digests": [
+        "562c89505a41bed3"
+      ],
+      "source_paths": [
+        "C:\\Users\\starg\\Documents\\Codex\\2026-05-10\\agi\\github-repo-scan\\DeepNeural-AutoExploration\\benchmarks\\code_level_rsi_benchmark.py"
+      ]
+    }
+  ],
+  "inventory": "C:\\Users\\starg\\Documents\\Codex\\2026-05-11\\pc\\python_file_inventory.txt",
+  "registered_generated_modules": [
+    "local_motif_fusion_4fdfc5a0fa",
+    "local_motif_fusion_9bffa294b9",
+    "local_motif_fusion_4663c7f622",
+    "local_motif_fusion_3d3056b4d5"
+  ],
+  "signals_scanned": 160,
+  "syntax_valid_signals": 160
+}

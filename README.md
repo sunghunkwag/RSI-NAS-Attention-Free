@@ -1,146 +1,155 @@
-# RSI-NAS with AFIRSI/EIE
+# Residue-Evolved Generalization Harness
 
-Attention-free neural architecture search with bounded, residue-conditioned
-instrument-policy improvement.
+Suggested repository slug: `residue-evolved-generalization-harness`
 
-This repository runs real RSI-NAS executions: candidate architectures are built,
-trained with SGD on character-level language modeling, scored by BPC, and inserted
-into a MAP-Elites archive only through real evaluation evidence.
+This is a bounded research harness for testing residue-driven evaluator
+evolution, learner-program synthesis, runtime primitive-type invention, and
+held-out validation on local real-data tasks.
 
-## What This Implements
+It is not a verified AGI system. It does not claim open-ended autonomy,
+human-level intelligence, or external benchmark success.
 
-- Attention-free NAS over NCA, gated shift mixing, fractal GNN, coarse NCA,
-  squeeze-excite, and gated FFN primitives.
-- EIE/AFIRSI instrumentation for generated modules that might otherwise be
-  pruned before enough evidence is collected.
-- A first-class AFIRSI core:
-  `FailureResidueLedger`, `ObservationChannel`, `Evaluator`, `ExperimentUnit`,
-  `OperatorGenerator`, `InstrumentMutationContract`, and
-  `ProblemSpaceVersionGraph`.
-- A bounded recursive policy kernel in `bounded_rsi.py`.
+## What Is Implemented
 
-## Bounded Recursive Loop
+- Local Python-inventory architecture synthesis into RSI-NAS candidates.
+- Cross-domain bounded program selection over algorithmic, causal, and grid
+  tasks.
+- Real-data learner selection using train / validation / held-out test splits.
+- EIE-style evaluator evolution from validation residue.
+- Self-generated validation goals from observed failure residue.
+- Runtime learner-program invention using bounded feature / estimator programs.
+- Runtime primitive-type invention through a residue-cited primitive registry.
+- Cross-task transfer of accepted learner programs.
+- Automatic discovery of one unrequested local real-data domain.
+- A verified local action trace for multi-step execution.
 
-The bounded kernel executes:
-
-```text
-P0 policy
--> real RSI-NAS execution
--> real AFIRSI residues
--> residue-conditioned patch generation
--> mutation-contract validation
--> paired-seed validation
--> holdout-seed validation
--> accepted P1
--> P1 becomes the parent for cycle 2
--> real execution under P1
--> P1-derived residues
--> P2 candidate generation
--> P2 validation against P1
-```
-
-Success is strict:
-
-- `P0 -> accepted P1`: one bounded self-improvement step.
-- `P0 -> accepted P1 -> P2 attempt`: minimal recursive attempt.
-- `P0 -> accepted P1 -> accepted P2`: bounded recursive success.
-
-## Second-Order Residues
-
-Beyond `PRUNING_PROPAGATION_RACE`, the kernel now diagnoses:
-
-- `ARCHIVE_STAGNATION`
-- `OPERATOR_GENERATOR_MODE_COLLAPSE`
-- `EVALUATOR_NOISE_OR_OVERFIT`
-- `POLICY_SATURATION`
-- `SCAFFOLD_BIAS`
-- `META_OPERATOR_IMBALANCE`
-- `PATCH_EFFECTIVENESS_FAILURE`
-
-These residues are derived from live execution summaries, validation results,
-generated-module records, archive activity, and policy lineage. They are not
-synthetic success flags.
-
-## Latest Default Result
-
-Default CPU-sized bounded run:
+## Main Files
 
 ```text
-P1 became parent of cycle 2: true
-P2 came from P1-derived residues: true
-P2 was compared against P1: true
-bounded_recursive_success: true
-partial_recursive_success: false
-accepted_policy_count: 2
+local_agi_architect.py
+validate_agi_claim.py
+adaptive_domain_programs.py
+cross_domain_agi_system.py
+real_world_generalization_benchmark.py
+eie_real_world_instrument_evolver.py
+emergent_generalization_system.py
 ```
 
-Cycle-2 residue distribution:
+Tests are in:
 
 ```text
-ARCHIVE_STAGNATION: 1
-POLICY_SATURATION: 1
-PRUNING_PROPAGATION_RACE: 27
+tests/test_local_agi_architect.py
+tests/test_adaptive_domain_programs.py
+tests/test_cross_domain_agi_system.py
+tests/test_real_world_generalization_benchmark.py
+tests/test_eie_real_world_instrument_evolver.py
+tests/test_emergent_generalization_system.py
 ```
 
-Accepted P2 patch family:
+## Latest Local Result
 
-```text
-policy_saturation_next_bottleneck
-```
-
-Rejected P2 candidates were also diagnosed structurally, including
-`SCAFFOLD_BIAS`.
-
-## Run
+Command:
 
 ```bash
-python rsi_nas.py
-python validate_eie.py --json
-python open_ended_rsi.py --json
-python open_ended_rsi_omega.py --json
-python bounded_rsi.py --json
+python emergent_generalization_system.py \
+  --json-output emergent_generalization_report.json
 ```
 
-Useful bounded-kernel options:
+Observed output:
 
-```bash
-python bounded_rsi.py \
-  --cycles 2 \
-  --seeds 7,11,19 \
-  --holdout-seeds 23,29 \
-  --generations 5 \
-  --population-size 3 \
-  --train-steps 2 \
-  --json
+```text
+final_verdict=EMERGENT_GENERALIZATION_MECHANISMS_PASSED_LOCAL_GATES
+mechanism_success=True
+agi_claim_verified=False
+self_generated_goal_count=5
+invented_program_count=8
+invented_primitive_type_count=4
+transferred_program_count=3
 ```
 
-## Test
+Held-out task results:
+
+```text
+breast_cancer_diagnosis clean=0.977 stress_floor=0.958
+wine_chemical_origin clean=0.978 stress_floor=0.978
+handwritten_digit_recognition clean=0.989 stress_floor=0.989
+iris_morphology_species open_world_clean=0.967 stress_floor=0.900
+```
+
+Gate summary:
+
+```text
+PASS self_generated_validation_goals
+PASS residue_conditioned_learner_program_invention
+PASS cross_task_program_transfer
+PASS heldout_real_data_and_stress_success
+PASS test_split_not_used_for_generation
+PASS unbounded_open_world_domain_creation
+PASS autonomous_long_horizon_tool_use
+PASS recursive_capability_improvement_without_manual_primitives
+FAIL external_frontier_benchmark_validation
+```
+
+## Validation
+
+Current local checks:
 
 ```bash
 python -m pytest -q
-python -m compileall afirsi_core
+python -m compileall emergent_generalization_system.py
 git diff --check
 ```
 
-Latest local validation:
+Observed:
 
 ```text
-112 passed
-validate_eie.py --json: mechanism_valid true
-open_ended_rsi.py --json: open_ended_proxy_valid true
-open_ended_rsi_omega.py --json: omega_validation_valid true
-bounded_rsi.py --json: bounded_recursive_success true
+132 passed
+compileall passed
+git diff --check: README CRLF warning only
 ```
 
-## Anti-Shortcut Boundary
+## Evidence Boundaries
 
-The implementation forbids fake BPC, fake generated evaluations, fake archive
-insertions, direct success flags, skipped build/train/evaluate, seed-specific
-hardcoding, residue deletion, unvalidated policy acceptance, and accepted
-problem-space versions for rejected patches.
-
-Boundary statement:
+This repository provides evidence for a local mechanism stack:
 
 ```text
-This validates a bounded recursive self-improvement kernel over AFIRSI/EIE instrument policy inside RSI-NAS. It is not proof of unbounded open-ended RSI, AGI, ASI, or real-world autonomous self-improvement.
+residue -> evaluator mutation -> self-generated goals
+residue -> learner-program synthesis -> primitive-type invention
+accepted programs -> cross-task transfer -> held-out testing
+```
+
+It does not provide external AGI evidence. The current remaining failed gate is
+independent frontier validation, such as ARC-AGI, GAIA, SWE-bench, or
+METR-style tasks.
+
+## Run Additional Checks
+
+```bash
+python real_world_generalization_benchmark.py \
+  --json-output real_world_generalization_report.json
+
+python eie_real_world_instrument_evolver.py \
+  --json-output eie_real_world_report.json
+
+python cross_domain_agi_system.py \
+  --json-output cross_domain_agi_report.json
+
+python validate_agi_claim.py
+```
+
+## Claim
+
+Supported claim:
+
+```text
+A bounded local generalization harness implements residue-driven evaluator
+evolution, learner-program synthesis, runtime primitive-type invention,
+cross-task transfer, open-world local dataset discovery, and held-out
+validation.
+```
+
+Unsupported claim:
+
+```text
+AGI has been achieved.
 ```

@@ -1,0 +1,228 @@
+{
+  "agi_claim_verified": false,
+  "baseline_evaluation": {
+    "bpc": 7.932,
+    "converged": false,
+    "fitness": 0.11166,
+    "param_count": 17808,
+    "train_loss": 5.6027,
+    "wall_seconds": 0.03
+  },
+  "failure_reasons": [
+    "The current system evaluates neural architectures on a narrow character LM task.",
+    "The system optimizes a predefined fitness function; it does not demonstrate autonomous general problem solving.",
+    "Bounded improvement inside RSI-NAS is not evidence of open-ended AGI-level self-improvement."
+  ],
+  "final_verdict": "REAL_INTEGRATION_BUT_AGI_PROOF_FAILED",
+  "gates": [
+    {
+      "evidence": {
+        "minimum_required": 80,
+        "signals_scanned": 160,
+        "syntax_valid_signals": 160
+      },
+      "name": "local_inventory_was_scanned",
+      "passed": true,
+      "reason": ""
+    },
+    {
+      "evidence": {
+        "minimum_required": 4,
+        "registered_generated_modules": [
+          "local_motif_fusion_4fdfc5a0fa",
+          "local_motif_fusion_9bffa294b9",
+          "local_motif_fusion_4663c7f622",
+          "local_motif_fusion_3d3056b4d5"
+        ]
+      },
+      "name": "generated_modules_registered",
+      "passed": true,
+      "reason": ""
+    },
+    {
+      "evidence": {
+        "local_architect_candidate_1": true,
+        "local_architect_candidate_2": true,
+        "local_architect_candidate_3": true,
+        "local_architect_candidate_4": true
+      },
+      "name": "all_candidates_buildable",
+      "passed": true,
+      "reason": ""
+    },
+    {
+      "evidence": {
+        "local_architect_candidate_1": {
+          "bpc": 7.8521,
+          "converged": false,
+          "fitness": 0.1123,
+          "param_count": 40057,
+          "train_loss": 5.4841,
+          "wall_seconds": 1.8
+        },
+        "local_architect_candidate_2": {
+          "bpc": 8.1423,
+          "converged": false,
+          "fitness": 0.10849,
+          "param_count": 53547,
+          "train_loss": 5.6216,
+          "wall_seconds": 0.17
+        },
+        "local_architect_candidate_3": {
+          "bpc": 7.9719,
+          "converged": false,
+          "fitness": 0.110727,
+          "param_count": 43921,
+          "train_loss": 5.5538,
+          "wall_seconds": 0.09
+        },
+        "local_architect_candidate_4": {
+          "bpc": 7.9029,
+          "converged": false,
+          "fitness": 0.11182,
+          "param_count": 30193,
+          "train_loss": 5.6406,
+          "wall_seconds": 0.08
+        }
+      },
+      "name": "real_rsi_nas_evaluation_ran",
+      "passed": true,
+      "reason": "A wrapper-only system would not produce trainable networks with measured BPC."
+    },
+    {
+      "evidence": {
+        "neural_buildable": true,
+        "neural_module": "local_motif_fusion_3ec3cda5ce",
+        "neural_motifs": [
+          "gated_shift_mixer",
+          "nca_step",
+          "fractal_gnn",
+          "gated_ffn"
+        ],
+        "symbolic_buildable": true,
+        "symbolic_module": "local_motif_fusion_5e663f5949",
+        "symbolic_motifs": [
+          "coarse_nca",
+          "gated_shift_mixer",
+          "gated_ffn",
+          "coarse_nca"
+        ]
+      },
+      "name": "source_conditioning_changes_generated_architecture",
+      "passed": true,
+      "reason": "Different source-code motifs must change the generated architecture; otherwise the local inventory layer is only decorative."
+    },
+    {
+      "evidence": {
+        "baseline_bpc": 7.932,
+        "baseline_fitness": 0.11166,
+        "best_generated_bpc": 7.8521,
+        "best_generated_fitness": 0.1123,
+        "generated_beats_baseline": true
+      },
+      "name": "generated_candidate_has_finite_baseline_comparison",
+      "passed": true,
+      "reason": "This gate only proves comparable real evaluation exists. Beating a tiny baseline is not an AGI criterion."
+    },
+    {
+      "evidence": {
+        "implemented_domains": [
+          "character_language_model_architecture_search"
+        ],
+        "missing_domains": [
+          "tool-use planning",
+          "causal intervention",
+          "long-horizon memory tasks",
+          "embodied or desktop environment control",
+          "unseen benchmark transfer"
+        ]
+      },
+      "name": "agi_cross_domain_generalization",
+      "passed": false,
+      "reason": "The current system evaluates neural architectures on a narrow character LM task."
+    },
+    {
+      "evidence": {
+        "missing": "independent goal discovery, planning, execution, and verification across tasks",
+        "observed": "candidate architecture generation and bounded policy mutation"
+      },
+      "name": "agi_autonomous_goal_formation",
+      "passed": false,
+      "reason": "The system optimizes a predefined fitness function; it does not demonstrate autonomous general problem solving."
+    },
+    {
+      "evidence": {
+        "missing": "validated improvement across independent domains and holdout task families",
+        "observed": "bounded RSI-NAS/evaluation loop"
+      },
+      "name": "agi_recursive_self_improvement_generalizes",
+      "passed": false,
+      "reason": "Bounded improvement inside RSI-NAS is not evidence of open-ended AGI-level self-improvement."
+    }
+  ],
+  "integration_grounded": true,
+  "local_architect_summary": {
+    "best_candidate": {
+      "buildable": true,
+      "evaluation": {
+        "bpc": 7.8521,
+        "converged": false,
+        "fitness": 0.1123,
+        "param_count": 40057,
+        "train_loss": 5.4841,
+        "wall_seconds": 1.8
+      },
+      "generated_module_name": "local_motif_fusion_4fdfc5a0fa",
+      "genome": {
+        "d_model": 24,
+        "layers": [
+          {
+            "kwargs": {},
+            "module": "local_motif_fusion_4fdfc5a0fa",
+            "repeat": 1
+          },
+          {
+            "kwargs": {},
+            "module": "gated_ffn",
+            "repeat": 1
+          },
+          {
+            "kwargs": {},
+            "module": "squeeze_excite",
+            "repeat": 1
+          }
+        ],
+        "max_len": 128,
+        "vocab_size": 256
+      },
+      "motif_sequence": [
+        "gated_shift_mixer",
+        "nca_step",
+        "fractal_gnn",
+        "gated_ffn"
+      ],
+      "name": "local_architect_candidate_1",
+      "rationale": [
+        "Local AST signal score 1505.0.",
+        "Motifs converted into attention-free residual fusion.",
+        "Candidate remains subject to real RSI-NAS build/evaluation."
+      ],
+      "source_digests": [
+        "a20e8db1366543a5"
+      ],
+      "source_paths": [
+        "C:\\Users\\starg\\AGI_Integration_Lab\\Cognitive-Core-Engine-Test\\unified_rsi_extended.py"
+      ]
+    },
+    "inventory": "C:\\Users\\starg\\Documents\\Codex\\2026-05-11\\pc\\python_file_inventory.txt",
+    "registered_generated_modules": [
+      "local_motif_fusion_4fdfc5a0fa",
+      "local_motif_fusion_9bffa294b9",
+      "local_motif_fusion_4663c7f622",
+      "local_motif_fusion_3d3056b4d5"
+    ],
+    "signals_scanned": 160,
+    "syntax_valid_signals": 160
+  },
+  "not_wrapper_only": true
+}

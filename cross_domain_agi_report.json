@@ -1,0 +1,749 @@
+{
+  "agi_claim_verified": false,
+  "domain_results": [
+    {
+      "domain": "algorithmic_synthesis",
+      "evidence": {
+        "behavior_signature": [
+          1.0,
+          1.0,
+          2.0
+        ],
+        "predictions": [
+          {
+            "expected": [
+              6,
+              7,
+              8,
+              9
+            ],
+            "input": [
+              9,
+              8,
+              7,
+              6
+            ],
+            "observed": [
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          {
+            "expected": [
+              4,
+              -1,
+              0
+            ],
+            "input": [
+              0,
+              -1,
+              4
+            ],
+            "observed": [
+              4,
+              -1,
+              0
+            ]
+          }
+        ],
+        "selected_program": {
+          "complexity": 2,
+          "domain": "algorithmic_synthesis",
+          "generation_created": 0,
+          "parent_program_id": null,
+          "primitive_sequence": [
+            {
+              "args": {},
+              "name": "enumerative_io_match"
+            },
+            {
+              "args": {},
+              "name": "reverse_list"
+            }
+          ],
+          "program_id": "alg_reverse_list",
+          "source_hash": "dd09f3aeb55b59a4"
+        }
+      },
+      "passed": true,
+      "score": 1.0,
+      "task_name": "reverse_unseen_lists"
+    },
+    {
+      "domain": "algorithmic_synthesis",
+      "evidence": {
+        "behavior_signature": [
+          1.0,
+          1.0,
+          3.0
+        ],
+        "predictions": [
+          {
+            "expected": 0,
+            "input": [
+              1,
+              3,
+              5
+            ],
+            "observed": 0
+          },
+          {
+            "expected": 3,
+            "input": [
+              0,
+              2,
+              5,
+              7,
+              8
+            ],
+            "observed": 3
+          }
+        ],
+        "selected_program": {
+          "complexity": 3,
+          "domain": "algorithmic_synthesis",
+          "generation_created": 0,
+          "parent_program_id": null,
+          "primitive_sequence": [
+            {
+              "args": {},
+              "name": "enumerative_io_match"
+            },
+            {
+              "args": {},
+              "name": "count_even"
+            }
+          ],
+          "program_id": "alg_count_even",
+          "source_hash": "6e6365a3ec6b38a0"
+        }
+      },
+      "passed": true,
+      "score": 1.0,
+      "task_name": "count_even_numbers"
+    },
+    {
+      "domain": "algorithmic_synthesis",
+      "evidence": {
+        "behavior_signature": [
+          1.0,
+          1.0,
+          3.0
+        ],
+        "predictions": [
+          {
+            "expected": [
+              11,
+              21
+            ],
+            "input": [
+              10,
+              20
+            ],
+            "observed": [
+              11,
+              21
+            ]
+          },
+          {
+            "expected": [
+              -4,
+              -3
+            ],
+            "input": [
+              -5,
+              -4
+            ],
+            "observed": [
+              -4,
+              -3
+            ]
+          }
+        ],
+        "selected_program": {
+          "complexity": 3,
+          "domain": "algorithmic_synthesis",
+          "generation_created": 0,
+          "parent_program_id": null,
+          "primitive_sequence": [
+            {
+              "args": {},
+              "name": "enumerative_io_match"
+            },
+            {
+              "args": {},
+              "name": "map_increment"
+            }
+          ],
+          "program_id": "alg_map_increment",
+          "source_hash": "8f78d22ee689d9ce"
+        }
+      },
+      "passed": true,
+      "score": 1.0,
+      "task_name": "map_increment_unseen"
+    },
+    {
+      "domain": "algorithmic_synthesis",
+      "evidence": {
+        "behavior_signature": [
+          1.0,
+          1.0,
+          2.0
+        ],
+        "predictions": [
+          {
+            "expected": 123,
+            "input": [
+              100,
+              23
+            ],
+            "observed": 123
+          },
+          {
+            "expected": -17,
+            "input": [
+              -8,
+              -9
+            ],
+            "observed": -17
+          }
+        ],
+        "selected_program": {
+          "complexity": 2,
+          "domain": "algorithmic_synthesis",
+          "generation_created": 0,
+          "parent_program_id": null,
+          "primitive_sequence": [
+            {
+              "args": {},
+              "name": "enumerative_io_match"
+            },
+            {
+              "args": {},
+              "name": "sum_list"
+            }
+          ],
+          "program_id": "alg_sum_list",
+          "source_hash": "ac8361a1a226ddbe"
+        }
+      },
+      "passed": true,
+      "score": 1.0,
+      "task_name": "pair_addition"
+    },
+    {
+      "domain": "algorithmic_synthesis",
+      "evidence": {
+        "behavior_signature": [
+          1.0,
+          1.0,
+          4.0
+        ],
+        "predictions": [
+          {
+            "expected": 29,
+            "input": [
+              2,
+              5
+            ],
+            "observed": 29
+          },
+          {
+            "expected": 19,
+            "input": [
+              3,
+              3,
+              1
+            ],
+            "observed": 19
+          }
+        ],
+        "selected_program": {
+          "complexity": 4,
+          "domain": "algorithmic_synthesis",
+          "generation_created": 0,
+          "parent_program_id": null,
+          "primitive_sequence": [
+            {
+              "args": {},
+              "name": "enumerative_io_match"
+            },
+            {
+              "args": {},
+              "name": "sum_squares"
+            }
+          ],
+          "program_id": "alg_sum_squares",
+          "source_hash": "ccbfa37416d39c9f"
+        }
+      },
+      "passed": true,
+      "score": 1.0,
+      "task_name": "sum_squares"
+    },
+    {
+      "domain": "causal_intervention",
+      "evidence": {
+        "behavior_signature": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "predictions": [
+          {
+            "expected": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "B",
+                "C"
+              ]
+            ],
+            "observed": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "B",
+                "C"
+              ]
+            ]
+          }
+        ],
+        "selected_program": {
+          "complexity": 3,
+          "domain": "causal_intervention",
+          "generation_created": 0,
+          "parent_program_id": null,
+          "primitive_sequence": [
+            {
+              "args": {},
+              "name": "direct_intervention_scan"
+            }
+          ],
+          "program_id": "causal_direct_intervention_scan",
+          "source_hash": "e34fda424507aefe"
+        }
+      },
+      "passed": true,
+      "score": 1.0,
+      "task_name": "chain_influence"
+    },
+    {
+      "domain": "causal_intervention",
+      "evidence": {
+        "behavior_signature": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "predictions": [
+          {
+            "expected": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "A",
+                "C"
+              ]
+            ],
+            "observed": [
+              [
+                "A",
+                "B"
+              ],
+              [
+                "A",
+                "C"
+              ]
+            ]
+          }
+        ],
+        "selected_program": {
+          "complexity": 3,
+          "domain": "causal_intervention",
+          "generation_created": 0,
+          "parent_program_id": null,
+          "primitive_sequence": [
+            {
+              "args": {},
+              "name": "direct_intervention_scan"
+            }
+          ],
+          "program_id": "causal_direct_intervention_scan",
+          "source_hash": "e34fda424507aefe"
+        }
+      },
+      "passed": true,
+      "score": 1.0,
+      "task_name": "fork_influence"
+    },
+    {
+      "domain": "causal_intervention",
+      "evidence": {
+        "behavior_signature": [
+          1.0,
+          2.0,
+          3.0
+        ],
+        "predictions": [
+          {
+            "expected": [
+              [
+                "A",
+                "C"
+              ],
+              [
+                "B",
+                "C"
+              ]
+            ],
+            "observed": [
+              [
+                "A",
+                "C"
+              ],
+              [
+                "B",
+                "C"
+              ]
+            ]
+          }
+        ],
+        "selected_program": {
+          "complexity": 3,
+          "domain": "causal_intervention",
+          "generation_created": 0,
+          "parent_program_id": null,
+          "primitive_sequence": [
+            {
+              "args": {},
+              "name": "direct_intervention_scan"
+            }
+          ],
+          "program_id": "causal_direct_intervention_scan",
+          "source_hash": "e34fda424507aefe"
+        }
+      },
+      "passed": true,
+      "score": 1.0,
+      "task_name": "xor_collider_influence"
+    },
+    {
+      "domain": "grid_planning",
+      "evidence": {
+        "behavior_signature": [
+          1.0,
+          8.0,
+          2.0
+        ],
+        "predictions": [
+          {
+            "max_steps": 8,
+            "path": [
+              [
+                0,
+                0
+              ],
+              [
+                0,
+                1
+              ],
+              [
+                0,
+                2
+              ],
+              [
+                0,
+                3
+              ],
+              [
+                0,
+                4
+              ],
+              [
+                1,
+                4
+              ],
+              [
+                2,
+                4
+              ],
+              [
+                3,
+                4
+              ],
+              [
+                4,
+                4
+              ]
+            ]
+          }
+        ],
+        "selected_program": {
+          "complexity": 2,
+          "domain": "grid_planning",
+          "generation_created": 0,
+          "parent_program_id": null,
+          "primitive_sequence": [
+            {
+              "args": {},
+              "name": "greedy_manhattan"
+            }
+          ],
+          "program_id": "grid_greedy_manhattan",
+          "source_hash": "2d167b9d776cb509"
+        }
+      },
+      "passed": true,
+      "score": 1.0,
+      "task_name": "corridor_detour"
+    },
+    {
+      "domain": "grid_planning",
+      "evidence": {
+        "behavior_signature": [
+          1.0,
+          9.0,
+          4.0
+        ],
+        "predictions": [
+          {
+            "max_steps": 11,
+            "path": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                0
+              ],
+              [
+                2,
+                0
+              ],
+              [
+                3,
+                0
+              ],
+              [
+                4,
+                0
+              ],
+              [
+                4,
+                1
+              ],
+              [
+                4,
+                2
+              ],
+              [
+                4,
+                3
+              ],
+              [
+                4,
+                4
+              ],
+              [
+                4,
+                5
+              ]
+            ]
+          }
+        ],
+        "selected_program": {
+          "complexity": 4,
+          "domain": "grid_planning",
+          "generation_created": 0,
+          "parent_program_id": null,
+          "primitive_sequence": [
+            {
+              "args": {},
+              "name": "bfs_shortest_path"
+            }
+          ],
+          "program_id": "grid_bfs_shortest_path",
+          "source_hash": "d12afaa30d23a6d3"
+        }
+      },
+      "passed": true,
+      "score": 1.0,
+      "task_name": "narrow_gate"
+    },
+    {
+      "domain": "grid_planning",
+      "evidence": {
+        "behavior_signature": [
+          1.0,
+          10.0,
+          4.0
+        ],
+        "predictions": [
+          {
+            "max_steps": 10,
+            "path": [
+              [
+                0,
+                0
+              ],
+              [
+                1,
+                0
+              ],
+              [
+                2,
+                0
+              ],
+              [
+                3,
+                0
+              ],
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                5,
+                1
+              ],
+              [
+                5,
+                2
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                5,
+                4
+              ],
+              [
+                5,
+                5
+              ]
+            ]
+          }
+        ],
+        "selected_program": {
+          "complexity": 4,
+          "domain": "grid_planning",
+          "generation_created": 0,
+          "parent_program_id": null,
+          "primitive_sequence": [
+            {
+              "args": {},
+              "name": "bfs_shortest_path"
+            }
+          ],
+          "program_id": "grid_bfs_shortest_path",
+          "source_hash": "d12afaa30d23a6d3"
+        }
+      },
+      "passed": true,
+      "score": 1.0,
+      "task_name": "blocked_center"
+    }
+  ],
+  "failure_reasons": [
+    "unified_learning_not_handcrafted_adapters: a learned policy that creates genuinely new primitives or domain programs from experience",
+    "autonomous_goal_formation_and_long_horizon_tool_use: self-proposed goals, tool plans, and verification in unseen environments",
+    "open_ended_recursive_generalization: recursive improvement that transfers to new task families without manual adapter insertion"
+  ],
+  "final_verdict": "CROSS_DOMAIN_TOY_SUCCESS_BUT_AGI_FAILED",
+  "gates": [
+    {
+      "domain": "meta_gate",
+      "evidence": {
+        "passed": 5,
+        "total": 5
+      },
+      "passed": true,
+      "score": 1.0,
+      "task_name": "algorithmic_synthesis_all_tasks_passed"
+    },
+    {
+      "domain": "meta_gate",
+      "evidence": {
+        "passed": 3,
+        "total": 3
+      },
+      "passed": true,
+      "score": 1.0,
+      "task_name": "causal_intervention_all_tasks_passed"
+    },
+    {
+      "domain": "meta_gate",
+      "evidence": {
+        "passed": 3,
+        "total": 3
+      },
+      "passed": true,
+      "score": 1.0,
+      "task_name": "grid_planning_all_tasks_passed"
+    },
+    {
+      "domain": "agi_gate",
+      "evidence": {
+        "missing": "a learned policy that creates genuinely new primitives or domain programs from experience",
+        "observed": "bounded domain-program candidates are sandboxed and selected, with failure grammar feedback",
+        "referenced_recent_repo_ideas": [
+          "DeepNeural-AutoExploration/operator_dsl.py",
+          "DeepNeural-AutoExploration/candidate_sandbox.py",
+          "DeepNeural-AutoExploration/failure_grammar.py",
+          "OMEGA-THDSE/benchmarks/runner.py"
+        ]
+      },
+      "passed": false,
+      "score": 0.0,
+      "task_name": "unified_learning_not_handcrafted_adapters"
+    },
+    {
+      "domain": "agi_gate",
+      "evidence": {
+        "missing": "self-proposed goals, tool plans, and verification in unseen environments",
+        "observed": "predefined benchmark objectives"
+      },
+      "passed": false,
+      "score": 0.0,
+      "task_name": "autonomous_goal_formation_and_long_horizon_tool_use"
+    },
+    {
+      "domain": "agi_gate",
+      "evidence": {
+        "missing": "recursive improvement that transfers to new task families without manual adapter insertion",
+        "observed": "bounded local inventory NAS plus toy-domain solvers"
+      },
+      "passed": false,
+      "score": 0.0,
+      "task_name": "open_ended_recursive_generalization"
+    }
+  ],
+  "local_inventory_summary": {
+    "candidate_count": 4,
+    "registered_generated_modules": [
+      "local_motif_fusion_4fdfc5a0fa",
+      "local_motif_fusion_9bffa294b9",
+      "local_motif_fusion_4663c7f622",
+      "local_motif_fusion_3d3056b4d5"
+    ],
+    "signals_scanned": 160,
+    "syntax_valid_signals": 160
+  },
+  "toy_cross_domain_success": true
+}
